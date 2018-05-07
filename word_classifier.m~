@@ -1,0 +1,28 @@
+%% Description 
+% Author : Alireza Tajadod 
+% Input : Data : Behavioural EDF Data , Audio : Corresponding audio file 
+% Output : 
+clear;
+
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003';
+
+audio_file = audio;
+audio_file.address = p_folder;
+audio_file.transcribe()
+audio_file.get_timestamps()
+
+data_file = data;
+data_file.address = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003/2003.edf';
+data_file.getmatfiles()
+data_file.setsaccades()
+
+
+for trial = 1:audio_file.num_trials
+   trial_field = ['trial_' int2str(trial)];
+   audio_struct = audio_file.words.(trial_field);
+   data_struct = data_file.saccade_start.(trial_field);
+   acceptable_saccaderange = audio_struct.start_time : audio_struct.end_time;
+   audio_struct.saccade = ismember(  [audio_struct.start_time : audio_struct.end_time] , data_struct)
+   
+   
+end
