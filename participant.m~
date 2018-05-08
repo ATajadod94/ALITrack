@@ -1,0 +1,27 @@
+classdef participant < handle
+    properties
+        id
+        address
+        data
+        audio
+    end
+    
+    methods
+      function setdata(obj)
+          
+        data_file = data;
+        data_file.address = [obj.address filesep obj.id '.eff'];
+        data_file.getmatfiles()
+        data_file.setsaccades()
+        data_file.setfixations()
+
+      end
+      function setaudio(obj)
+         audio_file = audio;
+         audio_file.address = p_folder;
+         audio_file.transcribe()
+         audio_file.get_timestamps( 
+      end
+
+    end     
+end 
