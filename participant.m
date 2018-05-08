@@ -24,15 +24,15 @@ classdef participant < handle
          audio_file.get_timestamps() 
          obj.audio = audio_file;
       end
-      function word_saccadefinder(obj)
+      function word_saccadefinder(obj,window_before, window_after)
           for trial = 1:obj.audio.num_trials
                trial_field = ['trial_' int2str(trial)];
                audio_struct = obj.audio.words.(trial_field);
                saccade_struct = obj.data.saccade_start.(trial_field);
                fixation_struct = obj.data.fixation_start.(trial_field);
                for word_num = 1:length(audio_struct)
-                   start_time = audio_struct(word_num).start_time * 100 ;
-                   end_time = audio_struct(word_num).end_time * 100 ;
+                   start_time = audio_struct(word_num).start_time * 100 - window_before  ;
+                   end_time = audio_struct(word_num).end_time * 100  + window_after;
                    saccade_index = find(saccade_struct <= end_time & saccade_struct>= start_time);
                    fixation_index =  find(fixation_struct <= end_time & fixation_struct>= start_time);
                    audio_struct(word_num).num_saccades =  length(saccade_index);

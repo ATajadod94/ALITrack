@@ -36,7 +36,6 @@ classdef audio < handle
                     participant_timetable = table(dataArray{1:end-1}, 'VariableNames', {'Word','start_time','end_time','duration'});
                     data_structure = table2struct(participant_timetable);
                     obj.words.(trial_number) =  data_structure;
-
                 end
                 
             end
