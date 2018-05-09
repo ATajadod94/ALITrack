@@ -7,15 +7,18 @@ classdef participant < handle
     end
     
     methods
+      function obj = participant( id, address) 
+          obj.id = id;
+          obj.address = address;
+      end
       function setdata(obj)
           
-        data_file = data;
+        data_file = data; %no I didn't matlab
         data_file.address = [obj.address filesep int2str(obj.id) '.edf'];
         data_file.getmatfiles()
         data_file.setsaccades()
         data_file.setfixations()
         obj.data = data_file;
-
       end
       function setaudio(obj)
          audio_file = audio; %no I didn't matlab
@@ -23,6 +26,9 @@ classdef participant < handle
          audio_file.transcribe()
          audio_file.get_timestamps() 
          obj.audio = audio_file;
+      end
+      function requested_trial = gettrial(obj, trial_number)
+          requested_trial = trial(obj, obj.data.datfile, trial_number);
       end
       function word_saccadefinder(obj,num_windows, varargin )
           if num_windows == 1

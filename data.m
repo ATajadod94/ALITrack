@@ -44,8 +44,7 @@ classdef data < handle
             for i = 1:obj.num_trials
                 getfixations(obj,i)
             end
-        end
-        
+        end 
     end
     
 end
