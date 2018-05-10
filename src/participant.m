@@ -31,7 +31,8 @@ classdef participant < handle
           requested_trial = trial(obj, obj.data.datfile, trial_number);
       end
       function get_trial_features(obj,trial_numbers)
-          if trial_number == 'All'
+          if strcmp('All',trial_numbers)
+              trial_numbers = 1:obj.data.datfile.trial_no;
           end
           for i = trial_numbers
               trial = gettrial(obj,i);
