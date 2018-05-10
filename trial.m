@@ -7,8 +7,15 @@ classdef trial < data
         y
         rho
         theta
+        %Fixation features 
         num_fixations
         fixation_location
+        fixation_duration_variation
+        
+        %Saccade features
+        num_saccades
+        saccade_location
+        saccade_duration_variation
     end
     methods
         function obj = trial(parent, data, trial_no)
@@ -31,14 +38,39 @@ classdef trial < data
         function number_of_fixation(obj)
             obj.num_fixations = length(obj.parent.data.fixation_start.(obj.trial_fieldname));
         end
+        function number_of_saccade(obj)
+            obj.num_saccades = length(obj.parent.data.saccade_start.(obj.trial_fieldname));
+        end
         function duration_of_fixation(obj)
-            obj.fixation_duration = (obj.parent.data.fixation_duration.(obj.trial_fieldname));
+            obj.fixation_duration = obj.parent.data.fixation_duration.(obj.trial_fieldname);
+        end
+        function duration_of_saccade(obj)
+            obj.saccade_duration = obj.parent.data.saccade_duration.(obj.trial_fieldname);
         end
         function location_of_fixation(obj)
             obj.fixation_location = [obj.parent.data.datfile(obj.trial_no).Fixations.gavx ;obj.parent.data.datfile(obj.trial_no).Fixations.gavy];
         end
+        function location_of_saccade_endpoints(obj)
+            obj.saccade_location = [obj.parent.data.datfile(obj.trial_no).Saccades.gstx; obj.parent.data.datfile(obj.trial_no).Saccades.gsty;
+                                    obj.parent.data.datfile(obj.trial_no).Saccades.genx; obj.parent.data.datfile(obj.trial_no).Saccades.geny];        
+        end
         function amplitude_of_saccade(obj)
             obj.saccade_amplitude =  (obj.parent.data.fixation_duration.(obj.trial_fieldname));       
+        end
+        function deviation_of_duration_of_fixation(obj)
+            if isempty(obj.fixation_duration)
+                duration_of_fixation(obj)
+            end
+            obj.fixation_duration_variation = zscore(double(obj.fixation_duration));
+                    
+        end
+        
+        function deviation_of_duration_of_saccade(obj)
+            if isempty(obj.saccade_duration)
+                duration_of_saccade(obj)
+            end
+            obj.saccade_duration_variation = zscore(double(obj.saccade_duration));    
+        
         end
         function regionsofinterest(obj)
             if isempty(obj.fixation_location)

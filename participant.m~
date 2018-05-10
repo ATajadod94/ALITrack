@@ -30,24 +30,9 @@ classdef participant < handle
       function requested_trial = gettrial(obj, trial_number)
           requested_trial = trial(obj, obj.data.datfile, trial_number);
       end
-      function get_trial_features(obj,trial_numbers)
-          if trial_number == 'All'
-          end
-          for i = trial_numbers
-              trial = gettrial(obj,i);
-              trial.number_of_fixation
-              trial.number_of_saccade
-              trial.duration_of_fixation
-              trial.duration_of_saccade
-              trial.location_of_fixation
-              trial.location_of_saccade_endpoints
-              trial.amplitude_of_saccade
-              trial.deviation_of_duration_of_fixation
-              trial.deviation_of_duration_of_saccade
-              trial.regionsofinterest                          
-          end
-          
-      function word_saccade_correlator(obj,num_windows, varargin )
+      function get_trial(obj,trial_number)
+          if trial_
+      function word_saccadefinder(obj,num_windows, varargin )
           if num_windows == 1
                 window_before = 0;
                 window_after = 0;
