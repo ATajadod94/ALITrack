@@ -53,7 +53,7 @@ myparticipant.get_trial_features(1:12)\
 trial = myparticipant.gettrial(1);
 
 ### using Trial class directly 
-trial = gettrial(obj,i); \
+trial = gettrial(myparticipant,1); \
 trial.number_of_fixation
 trial.number_of_saccade
 trial.duration_of_fixation
