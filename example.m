@@ -6,13 +6,18 @@ clear;
 close all;
 
 %using Participant Class
-myparticipant = participant(2003, '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003');
+%p_folder= '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003';
+%myparticipant = participant(2003, p_folder);
+
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/Larua_Data';
+myparticipant = participant('id02ma', p_folder);
+
 myparticipant.setdata()
 myparticipant.setaudio()
 
 myparticipant.word_saccade_correlator(3,'duration', 'before' , 100  , 'after', 200)  %myparticipant.word_saccadefinder(numberofwindows,
 
-myparticipant.get_trial_features(1:12)
+myparticipant.set_trial_features(1:12)
 trial = myparticipant.gettrial(1);
 
 %using trial class directly
