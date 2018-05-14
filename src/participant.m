@@ -46,6 +46,9 @@ classdef participant < handle
               obj.trials{i}.amplitude_of_saccade
               obj.trials{i}.deviation_of_duration_of_fixation
               obj.trials{i}.deviation_of_duration_of_saccade
+              obj.trials{i}.get_polar
+              obj.trials{i}.get_issaccade
+              obj.trials{i}.get_isfixation
               %obj.trials{i}.regionsofinterest                          
           end
           

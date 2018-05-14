@@ -17,7 +17,7 @@ myparticipant.setaudio()
 
 %myparticipant.word_saccade_correlator(3,'duration', 'before' , 100  , 'after', 200)  %myparticipant.word_saccadefinder(numberofwindows,
 
-myparticipant.set_trial_features(1:70)
+myparticipant.set_trial_features(1:12)
 trial = myparticipant.gettrial(1);
 
 %using trial class directly
