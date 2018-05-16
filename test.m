@@ -21,6 +21,7 @@ num_trees = 10;
 for trials = 1:70
     features = [features, [myparticipant.trials{1, trials}.rho;myparticipant.trials{1, trials}.theta]];
     results =  [results, myparticipant.trials{1, trials}.issaccadeorfixation];
+    time = [time,  [myparticipant.trials{1,trials }.sample_time]];
 end
 
 B = TreeBagger(num_trees,features',results');

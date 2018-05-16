@@ -35,7 +35,7 @@ trial.regionsofinterest
 
 
 
-
+a = condition(trial, @fixmlt_importer);
 
 
 %windowtype :{durationofword,before,after}

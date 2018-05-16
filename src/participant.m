@@ -5,6 +5,7 @@ classdef participant < handle
         data
         audio
         trials
+        condition
     end
     
     methods
@@ -28,6 +29,7 @@ classdef participant < handle
          audio_file.get_timestamps() 
          obj.audio = audio_file;
       end
+
       function requested_trial = gettrial(obj, trial_number)
           requested_trial = trial(obj, obj.data.datfile, trial_number);
       end
