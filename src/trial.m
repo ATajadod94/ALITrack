@@ -1,35 +1,53 @@
 classdef trial < data
-    properties 
-        parent
-        trial_no 
-        trial_fieldname
-        x
-        y
-        rho
-        theta
+       % inherited from data. Sets, calculates and plots trial specific data
+      
+       properties 
+        parent % Parent data set
+        trial_no % Number of Trial
+        trial_fieldname % Fieldname of Trial in string format
+        num_samples % Number of samples 
+        x % Sample X value of the eye movement 
+        y % Sample Y value of eye movements 
+        rho % Distance parameter of the sample Eye momvemnt in polar form 
+        theta % Angle parametger of the sample Eye movement in polar form
+        sample_time % Time of each sample, used as index 
+        issaccadeorfixation % Indicates whether each sample is a saccade(1) or fixation (-1) or neither (0) 
+
+        
         %Fixation features 
-        num_fixations
-        fixation_location
-        fixation_duration_variation
+        num_fixations % number of fixations in trial 
+        fixation_location %location of fixation in cartesian formo
+        fixation_duration_variation % variation in the duraiton of fixation 
+        isfixation % Array indicating whether each sample is part of a fixation 
         
         %Saccade features
-        num_saccades
-        num_fixation
-        sample_time
-        issaccade
-        isfixation
-        issaccadeorfixation
-        num_samples
-        saccade_location
-        saccade_duration_variation
+        num_saccades % Number of saccades in trial 
+        issaccade % Array indicatig whether each sample is oart of a saccade 
+        saccade_location % Location of Saccades, includes starting points (saccade_location[1:2, :] and end points saccade_location[3:4,:] 
+        saccade_duration_variation %Variation in saccade durations
+        
+        %Conditions 
+        condition %Associated condition file for the given trial 
+        
     end
     methods
-        function obj = trial(parent, data, trial_no)
+        function obj = trial(parent, data, trial_no, varargin)
+             % Given a parent data file, the data and a trial number with
+             % optional arguments for start and end time of relevant data
+             % creates a trial object. Also sets the x and y parameter
+             
+          if nargin == 4
+            time = varargin{1};
+            start_time = time(1);
+            end_time = time(2);
+          end
+
           obj.parent = parent;
           obj.trial_fieldname = ['trial_' int2str(trial_no)];
           obj.trial_no = trial_no;
-          obj.x = data(trial_no).Events.gstx;
-          obj.y = data(trial_no).Events.gsty;
+          
+          obj.x = data(trial_no).gx(start_time:end_time);
+          obj.y = data(trial_no).gy(start_time:end_time);
         end
         function plot(obj)
             [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
@@ -44,32 +62,55 @@ classdef trial < data
               hold on;
             end
         end
+        function animate(obj)
+             % Creates and draws an animation plot for the trial 
+            h = animatedline('MaximumNumPoints',1,'color', 'r', 'marker','*');
+            a = tic;
+            for k = 1:length(obj.x)
+                addpoints(h,obj.x(k),obj.y(k));
+                b = toc(a);
+                if b > 0.001
+                    drawnow
+                    a = tic;
+                end
+            end
+        end
         function get_polar(obj)
+            % sets the polar cordinates for the trial. Saved in the theta
+            % and rho properties 
           [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
         end
         function number_of_fixation(obj)
+            % sets the number of fixations for the trial
             obj.num_fixations = length(obj.parent.data.fixation_start.(obj.trial_fieldname));
         end
-        function number_of_saccade(obj)
+        function number_of_saccade(obj)           
+            % sets the number of saccades for the trial
             obj.num_saccades = length(obj.parent.data.saccade_start.(obj.trial_fieldname));
         end
         function duration_of_fixation(obj)
+            % sets the duration of fixation for the trial
             obj.fixation_duration = obj.parent.data.fixation_duration.(obj.trial_fieldname);
         end
         function duration_of_saccade(obj)
+            % sets the duraiton of saccades for the trial 
             obj.saccade_duration = obj.parent.data.saccade_duration.(obj.trial_fieldname);
         end
         function location_of_fixation(obj)
+             % sets the location of fixation for the trial 
             obj.fixation_location = [obj.parent.data.datfile(obj.trial_no).Fixations.gavx ;obj.parent.data.datfile(obj.trial_no).Fixations.gavy];
         end
-        function location_of_saccade_endpoints(obj)
+        function location_of_saccade(obj)
+            % sets the location of saccades points  for the trial 
             obj.saccade_location = [obj.parent.data.datfile(obj.trial_no).Saccades.gstx; obj.parent.data.datfile(obj.trial_no).Saccades.gsty;
                                     obj.parent.data.datfile(obj.trial_no).Saccades.genx; obj.parent.data.datfile(obj.trial_no).Saccades.geny];        
         end
         function amplitude_of_saccade(obj)
+            % sets the amplitude of saccades for the trial 
             obj.saccade_amplitude =  (obj.parent.data.fixation_duration.(obj.trial_fieldname));       
         end
         function deviation_of_duration_of_fixation(obj)
+             % sets the deviation of saccades  duration for the trial 
             if isempty(obj.fixation_duration)
                 duration_of_fixation(obj)
             end
@@ -77,9 +118,11 @@ classdef trial < data
                     
         end
         function get_issaccade(obj)
+             % sets the issaccade vector.  Also creates saccade_starts,
+             % num_samples and sample_times 
             obj.saccade_start = obj.parent.data.saccade_start.(obj.trial_fieldname);
-            obj.sample_time = obj.parent.data.datfile(obj.trial_no).Events.sttime - obj.parent.data.datfile(obj.trial_no).Events.sttime(1);
             obj.num_samples  = length(obj.x);
+            obj.sample_time = 1:obj.num_samples; %assuming the 1ms interpolated sample here
             obj.issaccade = zeros(size(obj.sample_time));
             for i = 1:obj.num_saccades
                 time_of_saccade = [obj.saccade_start(i), obj.saccade_start(i) + obj.saccade_duration(i)];
@@ -91,11 +134,13 @@ classdef trial < data
             end
         end
         function get_isfixation(obj)
+             % sets the issaccade vector.  Also creates fixation_start,
+             % num_samples and sample_times 
             obj.fixation_start = obj.parent.data.fixation_start.(obj.trial_fieldname);
             obj.num_samples  = length(obj.x);
             obj.isfixation = zeros(size(obj.sample_time));
-            obj.num_fixation = length(obj.fixation_start);
-            for i = 1:obj.num_fixation
+            obj.num_fixations = length(obj.fixation_start);
+            for i = 1:obj.num_fixations
                 time_of_saccade = [obj.fixation_start(i), obj.fixation_start(i) + obj.fixation_duration(i)];
                 idx = obj.sample_time >= time_of_saccade(1) & obj.sample_time <= time_of_saccade(2);
                 if isempty(find(idx,1))
@@ -108,6 +153,8 @@ classdef trial < data
             obj.issaccadeorfixation(find(obj.isfixation)) = -1;
        end
         function deviation_of_duration_of_saccade(obj)
+                % Sets the deviation of duration for saccades for the
+                % saccades
             if isempty(obj.saccade_duration)
                 duration_of_saccade(obj)
             end
@@ -115,6 +162,7 @@ classdef trial < data
         
         end
         function regionsofinterest(obj)
+                %doesn't do anything useful =] (yet)
             if isempty(obj.fixation_location)
                 location_of_fixation(obj)
             end
@@ -125,5 +173,7 @@ classdef trial < data
                  scatter(a(a(:,3) == i,1), a(a(:,3) == i,2))
             end
         end
-       end
+        
+
+     end
 end
