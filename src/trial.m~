@@ -1,8 +1,7 @@
-classdef trial < handle
+classdef trial 
        % inherited from data. Sets, calculates and plots trial specific data
       
        properties 
-        data %Data_file , extracted from participant's ztrack
         trial_no % Number of Trial
         trial_fieldname % Fieldname of Trial in string format
         num_samples % Number of samples 
@@ -43,11 +42,10 @@ classdef trial < handle
           end
           obj.trial_fieldname = ['trial_' int2str(trial_no)];
           obj.trial_no = trial_no;
-          obj.data = participant.Itrack.data{1,1}(trial_no);
+          data = participant.Itrack.data{1,1};
           obj.x = data(trial_no).gx(start_time:end_time);
           obj.y = data(trial_no).gy(start_time:end_time);
           obj.num_samples = length(obj.x);
-          obj.sample_time = obj.data.StartTime + uint32(0:obj.num_samples - 1) * uint32(obj.data.sample_rate);
         end
         
 %         function plot(obj)
@@ -78,18 +76,14 @@ classdef trial < handle
                 end
             end
         end
-        
         function get_polar(obj)
             % sets the polar cordinates for the trial. Saved in the theta
             % and rho properties 
           [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
         end
-        
         function number_of_fixation(obj)
             % sets the number of fixations for the trial
-            [row,col,~] = find(obj.data.fixation_times ==1 );
-            [~,m]  = unique(row,'first')
-            obj.num_fixations = length(obj.data.fixation_start.(obj.trial_fieldname));
+            obj.num_fixations = length(obj.parent.data.fixation_start.(obj.trial_fieldname));
         end
         function number_of_saccade(obj)           
             % sets the number of saccades for the trial
@@ -128,6 +122,8 @@ classdef trial < handle
              % sets the issaccade vector.  Also creates saccade_starts,
              % num_samples and sample_times 
             obj.saccade_start = obj.parent.data.saccade_start.(obj.trial_fieldname);
+            obj.num_samples  = obj.parent.data.datfile(obj.trial_no).numsamples;
+            obj.sample_time = obj.parent.data.datfile(obj.trial_no).StartTime + uint32(0:obj.num_samples - 1) * uint32(obj.parent.data.datfile(obj.trial_no).sample_rate);
             obj.issaccade = zeros(size(obj.sample_time));
             for i = 1:obj.num_saccadesr45554
                 time_of_saccade = [obj.saccade_start(i), obj.saccade_start(i) + obj.saccade_duration(i)];

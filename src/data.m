@@ -20,7 +20,6 @@ classdef data < handle
             % imports the edf file, sets the Itrack, datfile and
             % num_trialds properties. 
             if obj.address
-              obj.itrack = iTrack(obj.address,'samples',true);
               obj.datfile = obj.itrack.data{1, 1};
             end
             obj.num_trials = length(obj.datfile);
@@ -43,19 +42,6 @@ classdef data < handle
             trial_field = ['trial_' int2str(trial_number)];
             obj.fixation_start.(trial_field) = obj.datfile(trial_number).Fixations.sttime;
             obj.fixation_duration.(trial_field) = obj.datfile(trial_number).Fixations.entime -  obj.datfile(trial_number).Fixations.sttime;
-        end
-     
-        function setsaccades(obj)
-            % sets all saccade features for all trials
-            for i = 1:obj.num_trials
-                getsaccades(obj,i)
-            end
-        end
-        function setfixations(obj)
-             % sets all fixatio features for all trials
-            for i = 1:obj.num_trials
-                getfixations(obj,i)
-            end
         end
     end
     

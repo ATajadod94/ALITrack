@@ -13,9 +13,6 @@ p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALITracker_Data/aj031ro';
 myparticipant = participant('aj031ro', p_folder);
 
 myparticipant.setdata()
-%myparticipant.setaudio()
-
-%myparticipant.word_saccade_correlator(3,'duration', 'before' , 100  , 'after', 200)  %myparticipant.word_saccadefinder(numberofwindows,
 
 myparticipant.set_trial_features(1:27,'start_event',"Study_display", 'end_event', "Study_timer")
 trial = myparticipant.gettrial(1);
