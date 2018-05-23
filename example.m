@@ -9,8 +9,8 @@ close all;
 %p_folder= '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003';
 %myparticipant = participant(2003, p_folder);
 
-p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALITracker_Data/aj031ro';
-myparticipant = participant('aj031ro', p_folder);
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALITracker_Data/aj031ro/aj031ro.edf';
+myparticipant = participant(p_folder, 'samples', true);
 
 myparticipant.setdata()
 

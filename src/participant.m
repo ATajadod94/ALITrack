@@ -3,14 +3,13 @@ classdef participant < iTrack
     properties
         id  % Participant identifier 
         address % Path of the participant's data folder
-        Itrack % Itrack datafile 
         trials % Collection of Trial objects
     end
     
     methods
       function obj = participant(varargin) 
             % Creates a participant object given an Id and path.
-            obj = obj@iTrack(varargin);
+            obj = obj@iTrack(varargin{:});
       end
       
            
@@ -33,13 +32,12 @@ classdef participant < iTrack
           p.parse(p,obj,trial_number, varargin{:})
           
           %% Finding start/end time 
-          start_time = extract_event(obj.Itrack  ,'search','Study_display','time',true,'behfield',true);
+          start_time = extract_event(obj  ,'search','Study_display','time',true,'behfield',true);
           start_time = start_time.data{1, 1}(trial_number).beh.Study_display;
-          end_time = extract_event(obj.Itrack  ,'search','Study_timer','time',true,'behfield',true);
+          end_time = extract_event(obj  ,'search','Study_timer','time',true,'behfield',true);
           end_time = end_time.data{1, 1}(trial_number).beh.Study_timer;
-
-
           requested_trial = trial(obj, trial_number,[start_time,end_time]);
+
       end
       
       function set_trial_features(obj,trial_numbers,varargin)
@@ -58,18 +56,18 @@ classdef participant < iTrack
           end
           for i = trial_numbers
               obj.trials{i} = gettrial(obj,i,'start_event', p.Results.start_event,'end_event',  p.Results.end_event);
-              obj.trials{i}.number_of_fixation
-              obj.trials{i}.number_of_saccade
-              obj.trials{i}.duration_of_fixation
-              obj.trials{i}.duration_of_saccade
-              obj.trials{i}.location_of_fixation
-              obj.trials{i}.location_of_saccade
-              obj.trials{i}.amplitude_of_saccade
-              obj.trials{i}.deviation_of_duration_of_fixation
-              obj.trials{i}.deviation_of_duration_of_saccade
-              obj.trials{i}.get_polar
-              obj.trials{i}.get_issaccade
-              obj.trials{i}.get_isfixation
+%               obj.trials{i}.number_of_fixation
+%               objo.trials{i}.number_of_saccade
+%               obj.trials{i}.duration_of_fixation
+%               obj.trials{i}.duration_of_saccade
+%               obj.trials{i}.location_of_fixation
+%               obj.trials{i}.location_of_saccade
+%               obj.trials{i}.amplitude_of_saccade
+%               obj.trials{i}.deviation_of_duration_of_fixation
+%               obj.trials{i}.deviation_of_duration_of_saccade
+%               obj.trials{i}.get_polar
+%               obj.trials{i}.get_issaccade
+%               obj.trials{i}.get_isfixation
               %obj.trials{i}.regionsofinterest                          
           end
       end
