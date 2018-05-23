@@ -56,20 +56,27 @@ classdef participant < iTrack
           end
           for i = trial_numbers
               obj.trials{i} = gettrial(obj,i,'start_event', p.Results.start_event,'end_event',  p.Results.end_event);
-%               obj.trials{i}.number_of_fixation
-%               objo.trials{i}.number_of_saccade
-%               obj.trials{i}.duration_of_fixation
-%               obj.trials{i}.duration_of_saccade
-%               obj.trials{i}.location_of_fixation
-%               obj.trials{i}.location_of_saccade
-%               obj.trials{i}.amplitude_of_saccade
-%               obj.trials{i}.deviation_of_duration_of_fixation
-%               obj.trials{i}.deviation_of_duration_of_saccade
-%               obj.trials{i}.get_polar
-%               obj.trials{i}.get_issaccade
-%               obj.trials{i}.get_isfixation
+              obj.trials{i}.number_of_fixation
+              obj.trials{i}.number_of_saccade
+              obj.trials{i}.duration_of_fixation
+              obj.trials{i}.duration_of_saccade
+              obj.trials{i}.location_of_fixation
+              obj.trials{i}.location_of_saccade
+              obj.trials{i}.amplitude_of_saccade
+              obj.trials{i}.deviation_of_duration_of_fixation
+              obj.trials{i}.deviation_of_duration_of_saccade
+              obj.trials{i}.get_polar
+              obj.trials{i}.get_issaccade
+              obj.trials{i}.get_isfixation
               %obj.trials{i}.regionsofinterest                          
           end
+      end
+    end
+    
+    methods(Static)
+            
+      function data = getdata(trial)
+            data = trial.parent.data{1,1}(trial.trial_no);
       end
       
     end

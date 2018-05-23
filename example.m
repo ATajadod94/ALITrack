@@ -11,10 +11,10 @@ close all;
 
 p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALITracker_Data/aj031ro/aj031ro.edf';
 myparticipant = participant(p_folder, 'samples', true);
-
-myparticipant.setdata()
-
 myparticipant.set_trial_features(1:27,'start_event',"Study_display", 'end_event', "Study_timer")
+
+
+
 trial = myparticipant.gettrial(1);
 trial.animate()
 %using trial class directly

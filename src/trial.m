@@ -2,6 +2,7 @@ classdef trial < handle
     % inherited from data. Sets, calculates and plots trial specific data
     
     properties
+        parent % Reference to parent object
         data %Data_file , extracted from participant's ztrack
         trial_no % Number of Trial
         trial_fieldname % Fieldname of Trial in string format
@@ -25,26 +26,26 @@ classdef trial < handle
         %             isfixation % Array indicating whether each sample is part of a fixation
         
         isfixation  % Array indicatig whether each sample is part of a fixation
-
+        
         %Saccade features
         saccades = struct()
-                %             saccade_start
-                %             saccade_end
-                %             num_saccades % Number of saccades in trial
-                %             saccade_location % Location of Saccades, includes starting points (saccade_location[1:2, :] and end points saccade_location[3:4,:]
-                %             saccade_duration_variation %Variation in saccade durations
+        %             saccade_start
+        %             saccade_end
+        %             num_saccades % Number of saccades in trial
+        %             saccade_location % Location of Saccades, includes starting points (saccade_location[1:2, :] and end points saccade_location[3:4,:]
+        %             saccade_duration_variation %Variation in saccade durations
         
         issaccade   % Array indicatig whether each sample is oart of a saccade
-
-
+        
+        
         %Conditions
         condition %Associated condition for the given trial
-      
+        
         
     end
     
     properties (Access = private)
-             baseref;  %reference to base object
+        baseref;  %reference to base object
     end
     
     
@@ -61,12 +62,14 @@ classdef trial < handle
             end
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
-            obj.data = participant
+            obj.parent = participant;
             obj.index = start_time:end_time;
-            obj.x = obj.data.gx(obj.index);
-            obj.y = obj.data.gy(obj.index);
+            
+            trial_data = obj.parent.getdata(obj);
+            obj.x = trial_data.gx(obj.index);
+            obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
-            obj.sample_time = obj.data.StartTime + uint32(0:obj.num_samples - 1) * uint32(obj.data.sample_rate);
+            obj.sample_time = trial_data.StartTime + uint32(0:obj.num_samples - 1) * uint32(trial_data.sample_rate);
             obj.trial_time = (obj.sample_time(:) - obj.sample_time(1))';
         end
         
@@ -105,27 +108,19 @@ classdef trial < handle
             [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
         end
         
+        % ====== Feature detection methods =======
+        %% Fixation methods
         function number_of_fixation(obj)
             % sets the number of fixations for the trial
-            intrial_index = find(ismember(obj.data.Fixations.sttime,obj.index));
+            trial_data = obj.parent.getdata(obj);
+            intrial_index = find(ismember(trial_data.Fixations.sttime,obj.index));
             obj.fixations.rawindex = intrial_index;
             obj.fixations.number = length(intrial_index);
-            [~,col,~] =  find(obj.index == obj.data.Fixations.sttime(intrial_index));
+            [~,col,~] =  find(obj.index == trial_data.Fixations.sttime(intrial_index));
             obj.fixations.start = obj.trial_time(col);
-            [~,col,~] =  find(obj.index == obj.data.Fixations.entime(intrial_index));
+            [~,col,~] =  find(obj.index == trial_data.Fixations.entime(intrial_index));
             obj.fixations.end = obj.trial_time(col);
-        end
-        
-        function number_of_saccade(obj)
-            % sets the number of saccades for the trial
-            intrial_index = find(ismember(obj.data.Saccades.sttime,obj.index));
-            obj.saccades.rawindex = intrial_index;
-            obj.saccades.number = length(intrial_index);
-            [~,col,~] =  find(obj.index == obj.data.Saccades.sttime(intrial_index));
-            obj.saccades.start = obj.trial_time(col);
-            [~,col,~] =  find(obj.index == obj.data.Saccades.entime(intrial_index));
-            obj.saccades.end = obj.trial_time(col);
-        end
+        end   
         
         function duration_of_fixation(obj)
             if length(obj.fixations.end) < length(obj.fixations.start)
@@ -134,40 +129,48 @@ classdef trial < handle
             obj.fixations.duration = obj.fixations.end - obj.fixations.start ;
         end
         
+        function deviation_of_duration_of_fixation(obj)
+            % sets the deviation of saccades  duration for the trial
+            if isfield(obj.fixations, 'duration')
+                duration_of_fixation(obj)
+            end
+            obj.fixations.duration_variation = zscore(double(obj.fixations.duration));           
+        end
+        
+        function location_of_fixation(obj)
+            % sets the location of fixation for the trial
+            trial_data = obj.parent.getdata(obj);
+            obj.fixations.average_gazex = trial_data.Fixations.gavx(obj.fixations.rawindex);
+            obj.fixations.average_gazey = trial_data.Fixations.gavy(obj.fixations.rawindex);
+        end
+        
+       function get_isfixation(obj)
+            % sets the issaccade vector.  Also creates fixation_start,
+            % num_samples and sample_times
+            obj.isfixation = zeros(1,obj.num_samples);
+            [~,col,~ ] = find(obj.fixations.start' <= obj.trial_time & obj.trial_time <= obj.fixations.end');
+            obj.isfixation(col) = 1;
+        end
+        
+        %% Saccade methods
+        function number_of_saccade(obj)
+            % sets the number of saccades for the trial
+            trial_data = obj.parent.getdata(obj);
+            intrial_index = find(ismember(trial_data.Saccades.sttime,obj.index));
+            obj.saccades.rawindex = intrial_index;
+            obj.saccades.number = length(intrial_index);
+            [~,col,~] =  find(obj.index == trial_data.Saccades.sttime(intrial_index));
+            obj.saccades.start = obj.trial_time(col);
+            [~,col,~] =  find(obj.index == trial_data.Saccades.entime(intrial_index));
+            obj.saccades.end = obj.trial_time(col);
+        end
+        
         function duration_of_saccade(obj)
             % sets the duraiton of saccades for the trial
             if length(obj.saccades.end) < length(obj.saccades.start)
                 obj.saccades.end = [obj.saccades.end , obj.trial_time(end)];
             end
             obj.saccades.duration = obj.fixations.end - obj.fixations.start ;
-        end
-        
-        function location_of_fixation(obj)
-            % sets the location of fixation for the trial
-            obj.fixations.average_gazex = obj.data.Fixations.gavx(obj.fixations.rawindex);
-            obj.fixations.average_gazey = obj.data.Fixations.gavy(obj.fixations.rawindex);
-        end
-        function location_of_saccade(obj)
-            % sets the location of saccades points  for the trial
-            obj.saccades.start_gazex = obj.data.Saccades.gstx(obj.saccades.rawindex);
-            obj.saccades.start_gazey = obj.data.Saccades.gsty(obj.saccades.rawindex);
-            obj.saccades.end_gazex = obj.data.Saccades.genx(obj.saccades.rawindex);
-            obj.saccades.end_gazey = obj.data.Saccades.geny(obj.saccades.rawindex);
-        end
-        
-        
-        function amplitude_of_saccade(obj)
-            % sets the amplitude of saccades for the trial
-            obj.saccades.amplitude =  obj.data.Saccades.ampl(obj.saccades.rawindex);
-        end
-        
-        function deviation_of_duration_of_fixation(obj)
-            % sets the deviation of saccades  duration for the trial
-            if isfield(obj.fixations, 'duration')
-                duration_of_fixation(obj)
-            end
-            obj.fixations.duration_variation = zscore(double(obj.fixations.duration));
-            
         end
         
         function deviation_of_duration_of_saccade(obj)
@@ -180,23 +183,29 @@ classdef trial < handle
             obj.saccades.duration_variation = zscore(double(obj.saccades.duration));
         end
         
+        function location_of_saccade(obj)
+            % sets the location of saccades points  for the trial
+            trial_data = obj.parent.getdata(obj);
+            obj.saccades.start_gazex = trial_data.Saccades.gstx(obj.saccades.rawindex);
+            obj.saccades.start_gazey = trial_data.Saccades.gsty(obj.saccades.rawindex);
+            obj.saccades.end_gazex = trial_data.Saccades.genx(obj.saccades.rawindex);
+            obj.saccades.end_gazey = trial_data.Saccades.geny(obj.saccades.rawindex);
+        end
+            
+        function amplitude_of_saccade(obj)
+            % sets the amplitude of saccades for the trial
+            trial_data = obj.parent.getdata(obj);
+            obj.saccades.amplitude =  trial_data.Saccades.ampl(obj.saccades.rawindex);
+        end
         
         function get_issaccade(obj)
-            % sets the issaccade vector.  
-              obj.issaccade = zeros(1,obj.num_samples);
-              [~,col,~ ] = find(obj.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
-              obj.issaccade(col) = 1;
+            % sets the issaccade vector.
+            obj.issaccade = zeros(1,obj.num_samples);
+            [~,col,~ ] = find(obj.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
+            obj.issaccade(col) = 1;
         end
         
-        function get_isfixation(obj)
-            % sets the issaccade vector.  Also creates fixation_start,
-            % num_samples and sample_times
-              obj.isfixation = zeros(1,obj.num_samples);
-              [~,col,~ ] = find(obj.fixations.start' <= obj.trial_time & obj.trial_time <= obj.fixations.end');
-              obj.isfixation(col) = 1;
-        end
-        
-
+        %% ROI features 
         function regionsofinterest(obj)
             %doesn't do anything useful =] (yet)
             if isempty(obj.fixation_location)
