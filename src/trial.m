@@ -1,6 +1,5 @@
 classdef trial < handle
     % inherited from data. Sets, calculates and plots trial specific data
-    
     properties
         parent % Reference to parent object
         data %Data_file , extracted from participant's ztrack
@@ -54,7 +53,7 @@ classdef trial < handle
             % Given a parent data file, the data and a trial number with
             % optional arguments for start and end time of relevant data
             % creates a trial object. Also sets the x and y parameter
-            
+
             if nargin == 3
                 time = varargin{1};
                 start_time = time(1);
@@ -134,7 +133,7 @@ classdef trial < handle
             if isfield(obj.fixations, 'duration')
                 duration_of_fixation(obj)
             end
-            obj.fixations.duration_variation = zscore(double(obj.fixations.duration));           
+            obj.fixations.duration_variation = util.zscore(obj.fixations.duration);           
         end
         
         function location_of_fixation(obj)
@@ -180,7 +179,7 @@ classdef trial < handle
                 duration_of_saccade(obj)
             end
             
-            obj.saccades.duration_variation = zscore(double(obj.saccades.duration));
+            obj.saccades.duration_variation = util.zscore(double(obj.saccades.duration));
         end
         
         function location_of_saccade(obj)
