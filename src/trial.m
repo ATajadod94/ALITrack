@@ -36,7 +36,8 @@ classdef trial < handle
         
         issaccade   % Array indicatig whether each sample is oart of a saccade
         
-        
+        % ROIs
+
         %Conditions
         condition %Associated condition for the given trial
         
@@ -70,6 +71,8 @@ classdef trial < handle
             obj.num_samples = length(obj.x);
             obj.sample_time = trial_data.StartTime + uint32(0:obj.num_samples - 1) * uint32(trial_data.sample_rate);
             obj.trial_time = (obj.sample_time(:) - obj.sample_time(1))';
+            obj.rois.single = [];
+            obj.rois.combined = [];
         end
         
         %         function plot(obj)
@@ -107,6 +110,20 @@ classdef trial < handle
             [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
         end
         
+        function set_trial_features(obj,varargin)
+            obj.number_of_fixation
+            obj.number_of_saccade
+            obj.duration_of_fixation
+            obj.duration_of_saccade
+            obj.location_of_fixation
+            obj.location_of_saccade
+            obj.amplitude_of_saccade
+            obj.deviation_of_duration_of_fixation
+            obj.deviation_of_duration_of_saccade
+            obj.get_polar
+            obj.get_issaccade
+            obj.get_isfixation
+        end
         % ====== Feature detection methods =======
         %% Fixation methods
         function number_of_fixation(obj)
@@ -205,6 +222,217 @@ classdef trial < handle
         end
         
         %% ROI features 
+        
+        function obj=makeROIs(obj,pos,varargin)
+            
+            p = inputParser;
+            p.addParameter('radius',50,@isnumeric);
+            p.addParameter('shape','circle',@(x) ismember(x,{'circle','circular','ellipse','elliptical','square','rectangle','userDefined'})); %zhongxu add 'userDefined'
+            p.addParameter('xradius',50,@isnumeric);
+            p.addParameter('yradius',10,@isnumeric);
+            p.addParameter('angle',0,@(x) min(x)>=0 && max(x)<= 360);
+            p.addParameter('clear',0);
+            p.addParameter('userDefinedMask',{},@iscell);
+            p.addParameter('names',{},@iscell);
+            parse(p,varargin{:});
+            
+            
+            if p.Results.clear==1
+                obj = clearROIs(obj);
+            end
+            
+            xres = obj.parent.screen.dims(1);
+            yres = obj.parent.screen.dims(2);
+            
+            
+            if isempty(obj.rois.single)
+                existing_rois = 0;
+            else
+                existing_rois = length(obj.rois.single);
+            end
+            
+            
+            if length(p.Results.angle)==1
+                angles = repmat(p.Results.angle,size(pos,1),1);
+            else
+                angles=p.Results.angle;
+            end
+            
+            
+            if isempty(p.Results.names)
+                %                 names = num2cell((existing_rois+1):(existing_rois+size(pos,1)));
+                temp = (existing_rois+1):(existing_rois+size(pos,1));
+                names = strread(num2str(temp),'%s');
+            else
+                names = p.Results.names;
+            end
+            
+            
+            for r =(existing_rois+1):(existing_rois+size(pos,1))
+                
+                i = r - existing_rois;  %index of current set of rois
+                xpos = pos(i,1);
+                ypos = pos(i,2);
+                
+                xcenter = fix(obj.parent.screen.dims(1)/2);
+                ycenter = fix(obj.parent.screen.dims(2)/2);
+                
+                [XX, YY] = meshgrid(0:(xres-1),0:(yres-1));
+                
+                obj.rois.single(r).name = names{i};
+                obj.rois.single(r).coords = [xpos,ypos];
+                obj.rois.single(r).shape = p.Results.shape;
+                obj.rois.single(r).radius = p.Results.radius;
+                obj.rois.single(r).xradius = p.Results.xradius;
+                obj.rois.single(r).yradius = p.Results.yradius;
+                
+                switch p.Results.shape
+                    case {'circle','circular'}
+                        obj.rois.single(r).mask = sqrt((XX-xpos).^2+(YY-ypos).^2)<=p.Results.radius;
+                        
+                    case {'ellipse','elliptical'}
+                        
+                        if angles(i)>0
+                            
+                            xshift = xpos - xcenter;
+                            yshift = ypos - ycenter;
+                            
+                            %create an ellipse in the center, then rotate
+                            el=((XX-xcenter)/p.Results.xradius).^2+((YY-ycenter)/p.Results.yradius).^2<=1;
+                            el=imrotate(el,angles(i),'nearest','crop');
+                            
+                            %then shift the image so it's centered over the
+                            %correct point
+                            RA = imref2d(size(el)); %so we keep the same image size
+                            tform = affine2d([1 0 0; 0 1 0; xshift yshift 1]);
+                            el = imwarp(el, tform,'OutputView',RA);
+                            
+                        else
+                            el=((XX-xpos)/p.Results.xradius).^2+((YY-ypos)/p.Results.yradius).^2<=1;
+                        end
+                        
+                        
+                        obj.rois.single(r).mask =el;
+                        %zhongxu add the following two cases
+                    case {'square','rectangle'}   % this needs to be checked :)
+                        obj.rois.single(r).mask = abs(XX-xpos)<=p.Results.xradius & abs(YY-ypos)<=p.Results.yradius;
+                    case {'userDefined'}
+                        
+                        if size(XX,1) == size(p.Results.userDefinedMask{i},1) && size(XX,2) == size(p.Results.userDefinedMask{i},2)
+                            
+                            
+                            
+                            obj.rois.single(r).mask = p.Results.userDefinedMask{i};
+                            
+                        else
+                            error('mask dimension does not fit screen dimension')
+                        end
+                end
+                
+            end
+            
+            
+        end
+        
+        function obj=combineROIs(obj,RoiIndex)
+            % zhongxu add: specifiy which ROIs need to be combined, not  just combined all
+            % TODO: these line of codes are ugly, need to be simplified.
+            if nargin ==1
+                numrois = length(obj.rois.single);
+                RoiIndex=1:numrois;
+            else
+                numrois = length(RoiIndex);
+                
+                if iscell(RoiIndex)
+                    if ischar(RoiIndex{1})
+                        roitotal = length(obj.rois.single);
+                        for i = 1:roitotal
+                            for j = 1:numrois
+                                if strcmp(obj.rois.single(i).name,RoiIndex{j})
+                                    tempind(j)= i;
+                                end
+                            end
+                        end
+                        RoiIndex = tempind;
+                    else
+                        RoiIndex = cell2mat(RoiIndex);
+                    end
+                end
+            end
+            
+            combined = zeros(size(obj.rois.single(1).mask));
+            
+            for r = 1:numrois
+                
+                combined = combined + obj.rois.single(RoiIndex(r)).mask;
+                
+            end
+            
+            obj.rois.combined = combined;
+            
+        end
+        
+       function obj = calcHits(obj,varargin)
+            %wrapper for calcEyehits_ to make it easier to repeat for
+            %fixations and saccades.
+            p = inputParser;
+            p.addParameter('rois','all',@(x) iscell(x) || ischar(x));
+            parse(p,varargin{:});
+            
+            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','fixations');
+            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_start');
+            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
+            
+       end
+        
+        function obj= calcEyehits_(obj,varargin)
+            %internal function for calculating whether fixations/saccades
+            %hit a given roi or not.
+            p = inputParser;
+            p.addParameter('rois','all',@(x) iscell(x) || ischar(x));
+            p.addParameter('type','fixations',@ischar);
+            parse(p,varargin{:});
+                        
+            if ~iscell(p.Results.rois) && strcmp(p.Results.rois,'all')
+                rois = {obj.rois.single.name};
+            elseif ~iscell(p.Results.rois)
+                rois = {p.Results.rois};
+            else
+                rois = p.Results.rois;
+            end
+            
+            numROIs = length(rois);
+            
+            for r=1:numROIs
+
+                xres = obj.screen.dims(1);
+                yres = obj.screen.dims(2);
+
+                roi_idx = find(ismember({obj.rois.single.name},rois{r}));
+
+                roi_mask = obj.rois.single(roi_idx).mask;
+
+                %%
+                %matrix of all coordinates
+                coords = [obj.fixations.start;obj.fixations.end];
+                numfixes = obj.fixations.number;
+
+            end
+
+                %convert our fixation_hits structure to a cell. Why?
+                %because matlab is dumb.
+                temp = arrayfun(@(x) {x},fixation_hits);
+                
+                
+                
+                
+                %now we can fill in our data
+                [obj.data{s}.(newfname)] = deal(temp{:});
+                
+            end
+            
+        
+        
         function regionsofinterest(obj)
             %doesn't do anything useful =] (yet)
             if isempty(obj.fixation_location)
