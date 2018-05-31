@@ -37,6 +37,7 @@ classdef trial < handle
         issaccade   % Array indicatig whether each sample is oart of a saccade
         
         % ROIs
+        rois = struct()
 
         %Conditions
         condition %Associated condition for the given trial
@@ -405,18 +406,20 @@ classdef trial < handle
             
             for r=1:numROIs
 
-                xres = obj.screen.dims(1);
-                yres = obj.screen.dims(2);
+                xres = obj.parent.screen.dims(1);
+                yres = obj.parent.screen.dims(2);
 
                 roi_idx = find(ismember({obj.rois.single.name},rois{r}));
 
                 roi_mask = obj.rois.single(roi_idx).mask;
 
-                %%
                 %matrix of all coordinates
-                coords = [obj.fixations.start;obj.fixations.end];
-                numfixes = obj.fixations.number;
-
+                coords = [obj.fixations.average_gazex,obj.fixations.average_gazey];
+                coords = ceil(coords);
+                idx = sub2ind([yres,xres],coords(:,2),coords(:,1));
+                overlap = ismember(idx, find(roi_mask));
+                overlap_idx = find(overlap);
+                
             end
 
                 %convert our fixation_hits structure to a cell. Why?
@@ -426,7 +429,7 @@ classdef trial < handle
                 
                 
                 
-                %now we can fill in our data
+                %now we can fill in our datasi
                 [obj.data{s}.(newfname)] = deal(temp{:});
                 
             end
