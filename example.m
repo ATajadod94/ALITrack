@@ -24,7 +24,6 @@ trial.number_of_saccade
 trial.duration_of_fixation
 trial.duration_of_saccade
 trial.location_of_fixation
-trial.location_of_saccade_endpoints
 trial.amplitude_of_saccade
 trial.deviation_of_duration_of_fixation
 trial.deviation_of_duration_of_saccade
