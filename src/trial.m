@@ -477,7 +477,7 @@ classdef trial < handle
                all_grids(grid_num) = {mygrid}; 
                mygrid = zeros(xres,yres);
            end
-           makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', 'grid_' + gridsize)
+           makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
         end
         
         
