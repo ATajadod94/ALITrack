@@ -319,15 +319,15 @@ classdef trial < handle
                         obj.rois.single(r).mask = abs(XX-xpos)<=p.Results.xradius & abs(YY-ypos)<=p.Results.yradius;
                     case {'userDefined'}
                         
-                        if size(XX,1) == size(p.Results.userDefinedMask{i},1) && size(XX,2) == size(p.Results.userDefinedMask{i},2)
+                        %if size(XX,1) == size(p.Results.userDefinedMask{i},1) && size(XX,2) == size(p.Results.userDefinedMask{i},2)
                             
                             
                             
                             obj.rois.single(r).mask = p.Results.userDefinedMask{i};
                             
-                        else
-                            error('mask dimension does not fit screen dimension')
-                        end
+%                         else
+%                             error('mask dimension does not fit screen dimension')
+%                         end
                 end
                 
             end
@@ -414,41 +414,76 @@ classdef trial < handle
                 roi_mask = obj.rois.single(roi_idx).mask;
 
                 %matrix of all coordinates
-                coords = [obj.fixations.average_gazex,obj.fixations.average_gazey];
+                
+                if strcmpi(p.Results.type,'fixations')
+                    coords = [obj.fixations.average_gazex,obj.fixations.average_gazey];
+                elseif strcmpi(p.Results.type,'saccade_start')
+                    coords = [obj.saccades.start_gazex,obj.saccades.start_gazey];                  
+                elseif strcmpi(p.Results.type,'saccade_end')
+                     coords = [obj.saccades.end_gazex,obj.saccades.end_gazey];                                      
+                end
+                
                 coords = ceil(coords);
                 idx = sub2ind([yres,xres],coords(:,2),coords(:,1));
                 overlap = ismember(idx, find(roi_mask));
-                overlap_idx = find(overlap);
+                
+                if strcmpi(p.Results.type,'fixations')
+                   obj.fixations.hits = overlap';     
+                elseif strcmpi(p.Results.type,'saccade_start')
+                   obj.saccades.start_hits = overlap';     
+                elseif strcmpi(p.Results.type,'saccade_end')
+                   obj.saccades.end_hits = overlap';     
+                end
                 
             end
+        end
+% 
+%         function regionsofinterest(obj)
+%             %doesn't do anything useful =] (yet)
+%             if isempty(obj.fixation_location)
+%                 location_of_fixation(obj)
+%             end
+%             figure
+%             hold on
+%             a = [obj.fixation_location' , kmeans(obj.fixation_location',10)];
+%             for i=1:10
+%                 scatter(a(a(:,3) == i,1), a(a(:,3) == i,2))
+%             end
+%         end
+        
+        function set_grid(obj, gridsize)
+            %size could either be a vectory or a value for square sized 
+            xres = obj.parent.screen.dims(1);
+            yres = obj.parent.screen.dims(2);
+            if strcmpi(gridsize, 'default')  
+                division_factor = gcd(xres,yres);
+                gridsize = sqrt(gcd(xres,yres)); % better way to calculate the default size? eg, gcf of  xres yres
+            end
+           
+           total_grids = xres/ gridsize;
+           all_grids = cell(1,total_grids);
+           mygrid = zeros(xres,yres);
+           
+           xbreaks = [1:gridsize:xres, xres];
+           ybreaks = [1:gridsize:yres, yres];
+           
+           for grid_num = 1:total_grids
+               for i = 1:length(xbreaks)-1
+                   for j = 1:length(ybreaks)-1
+                       mygrid(xbreaks(i):xbreaks(i+1),ybreaks(j):ybreaks(j+1))  = i;
 
-                %convert our fixation_hits structure to a cell. Why?
-                %because matlab is dumb.
-                temp = arrayfun(@(x) {x},fixation_hits);
-                
-                
-                
-                
-                %now we can fill in our datasi
-                [obj.data{s}.(newfname)] = deal(temp{:});
-                
-            end
-            
-        
-        
-        function regionsofinterest(obj)
-            %doesn't do anything useful =] (yet)
-            if isempty(obj.fixation_location)
-                location_of_fixation(obj)
-            end
-            figure
-            hold on
-            a = [obj.fixation_location' , kmeans(obj.fixation_location',10)];
-            for i=1:10
-                scatter(a(a(:,3) == i,1), a(a(:,3) == i,2))
-            end
+                   end
+               end
+               all_grids(grid_num) = {mygrid}; 
+               mygrid = zeros(xres,yres);
+           end
+           makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', 'grid_' + gridsize)
         end
         
         
-    end
+      end
+      
+
+        
+        
 end

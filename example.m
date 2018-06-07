@@ -27,7 +27,8 @@ trial.location_of_fixation
 trial.amplitude_of_saccade
 trial.deviation_of_duration_of_fixation
 trial.deviation_of_duration_of_saccade
-trial.regionsofinterest
+trial.setgrid('default')
+% trial.regionsofinterest
 
 
 

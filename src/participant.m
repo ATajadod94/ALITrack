@@ -37,7 +37,6 @@ classdef participant < iTrack
           end_time = extract_event(obj  ,'search','Study_timer','time',true,'behfield',true);
           end_time = end_time.data{1, 1}(trial_number).beh.Study_timer;
           requested_trial = trial(obj, trial_number,[start_time,end_time]);
-
       end
       
       function set_trial_features(obj,trial_numbers,varargin)
