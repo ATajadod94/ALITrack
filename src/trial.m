@@ -237,104 +237,76 @@ classdef trial < handle
             p.addParameter('names',{},@iscell);
             parse(p,varargin{:});
             
-            
             if p.Results.clear==1
-                obj = clearROIs(obj);
-            end
-            
-            xres = obj.parent.screen.dims(1);
-            yres = obj.parent.screen.dims(2);
-            
-            
-            if isempty(obj.rois.single)
-                existing_rois = 0;
+                obj.rois.single = [];
+                obj.rois.combined = [];
+                num_existingrois = 0;
             else
-                existing_rois = length(obj.rois.single);
+                num_existingrois = length(obj.rois.single);
             end
-            
-            
-            if length(p.Results.angle)==1
-                angles = repmat(p.Results.angle,size(pos,1),1);
-            else
-                angles=p.Results.angle;
-            end
-            
             
             if isempty(p.Results.names)
-                %                 names = num2cell((existing_rois+1):(existing_rois+size(pos,1)));
-                temp = (existing_rois+1):(existing_rois+size(pos,1));
-                names = strread(num2str(temp),'%s');
+                number_of_rois = num_existingrois+1:num_existingrois+size(pos,1);
+                names = num2str(number_of_rois(:));
             else
+                number_of_rois = size(pos,1);
                 names = p.Results.names;
             end
             
-            
-            for r =(existing_rois+1):(existing_rois+size(pos,1))
-                
-                i = r - existing_rois;  %index of current set of rois
-                xpos = pos(i,1);
-                ypos = pos(i,2);
-                
-                xcenter = fix(obj.parent.screen.dims(1)/2);
-                ycenter = fix(obj.parent.screen.dims(2)/2);
-                
-                [XX, YY] = meshgrid(0:(xres-1),0:(yres-1));
-                
-                obj.rois.single(r).name = names{i};
-                obj.rois.single(r).coords = [xpos,ypos];
-                obj.rois.single(r).shape = p.Results.shape;
-                obj.rois.single(r).radius = p.Results.radius;
-                obj.rois.single(r).xradius = p.Results.xradius;
-                obj.rois.single(r).yradius = p.Results.yradius;
+            for roi_number = 1:length(number_of_rois)
+                %% For all Roi
+                obj.rois.single(roi_number).name = names{roi_number};
+                obj.rois.single(roi_number).coords = pos(roi_number,:);
                 
                 switch p.Results.shape
-                    case {'circle','circular'}
-                        obj.rois.single(r).mask = sqrt((XX-xpos).^2+(YY-ypos).^2)<=p.Results.radius;
+                    case 'userDefined'                       
+                        obj.rois.single(roi_number).shape = 'userdefined';
+                        obj.rois.single(roi_number).mask = p.Results.userDefinedMask{roi_number};
                         
-                    case {'ellipse','elliptical'}
+                    otherwise
                         
-                        if angles(i)>0
-                            
-                            xshift = xpos - xcenter;
-                            yshift = ypos - ycenter;
-                            
-                            %create an ellipse in the center, then rotate
-                            el=((XX-xcenter)/p.Results.xradius).^2+((YY-ycenter)/p.Results.yradius).^2<=1;
-                            el=imrotate(el,angles(i),'nearest','crop');
-                            
-                            %then shift the image so it's centered over the
-                            %correct point
-                            RA = imref2d(size(el)); %so we keep the same image size
-                            tform = affine2d([1 0 0; 0 1 0; xshift yshift 1]);
-                            el = imwarp(el, tform,'OutputView',RA);
-                            
-                        else
-                            el=((XX-xpos)/p.Results.xradius).^2+((YY-ypos)/p.Results.yradius).^2<=1;
+                        obj.rois.single(roi_number).shape = p.Reults.shape(roi_number);
+                        obj.rois.single(roi_number).radius = p.Results.radius(roi_number);
+                        obj.rois.single(roi_number).xradius = p.Results.xradius(roi_number);
+                        obj.rois.single(roi_number).yradius = p.Results.yradius(roi_number);
+                        
+                        xcenter = floor(obj.parent.screen.dims(1)/2);
+                        ycenter = floor(obj.parent.screen.dims(2)/2);
+                        
+                        
+                        [XX, YY] = meshgrid(0:(obj.parent.screen.dims(1)-1),...
+                            0:(obj.parent.screen.dims(2)-1));
+                        
+                        
+                        switch p.Results.shape
+                            case {'circle','circular'}
+                                obj.rois.single(roi_number).mask = sqrt(XX-pos(roi_number,1).^2+(YY-pos(roi_number,2).^2))...
+                                                        <=p.Results.radius;
+                                
+                            case {'ellipse','elliptical'}
+                                xshift = xpos - xcenter;
+                                yshift = ypos - ycenter;
+                                
+                                %create an ellipse in the center, then rotate
+                                el=((XX-xcenter)/p.Results.xradius).^2+((YY-ycenter)/p.Results.yradius).^2<=1;
+                                el=imrotate(el,angles(roi_number),'nearest','crop');
+                                
+                                %then shift the image so it's centered over the
+                                %correct point
+                                RA = imref2d(size(el)); %so we keep the same image size
+                                tform = affine2d([1 0 0; 0 1 0; xshift yshift 1]);
+                                obj.rois.single(roi_number).mask = imwarp(el, tform,'OutputView',RA);
+                                
+                            case {'square','rectangle'}   % this needs to be checked :)
+                                obj.rois.single(roi_number).mask = abs(XX-xpos)<=p.Results.xradius & abs(YY-ypos)<=p.Results.yradius;
                         end
                         
                         
-                        obj.rois.single(r).mask =el;
-                        %zhongxu add the following two cases
-                    case {'square','rectangle'}   % this needs to be checked :)
-                        obj.rois.single(r).mask = abs(XX-xpos)<=p.Results.xradius & abs(YY-ypos)<=p.Results.yradius;
-                    case {'userDefined'}
-                        
-                        %if size(XX,1) == size(p.Results.userDefinedMask{i},1) && size(XX,2) == size(p.Results.userDefinedMask{i},2)
-                            
-                            
-                            
-                            obj.rois.single(r).mask = p.Results.userDefinedMask{i};
-                            
-%                         else
-%                             error('mask dimension does not fit screen dimension')
-%                         end
                 end
                 
             end
-            
-            
         end
-        
+            
         function obj=combineROIs(obj,RoiIndex)
             % zhongxu add: specifiy which ROIs need to be combined, not  just combined all
             % TODO: these line of codes are ugly, need to be simplified.
@@ -462,10 +434,10 @@ classdef trial < handle
            
            total_grids = xres/ gridsize;
            all_grids = cell(1,total_grids);
-           mygrid = zeros(xres,yres);
+           mygrid = zeros(yres,xres);
            
-           xbreaks = [1:gridsize:xres, xres];
-           ybreaks = [1:gridsize:yres, yres];
+           xbreaks = [1:gridsize:yres, yres];
+           ybreaks = [1:gridsize:xres, xres];
            
            for grid_num = 1:total_grids
                for i = 1:length(xbreaks)-1
@@ -475,12 +447,16 @@ classdef trial < handle
                    end
                end
                all_grids(grid_num) = {mygrid}; 
-               mygrid = zeros(xres,yres);
+               mygrid = zeros(yres,xres);
            end
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
         end
         
+        function recurrence(obj, varargin)
+            obj.calcHits('rois', 'grid16')
         
+            
+        end
       end
       
 
