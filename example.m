@@ -9,7 +9,7 @@ close all;
 %p_folder= '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003';
 %myparticipant = participant(2003, p_folder);
 
-p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALITracker_Data/aj031ro/aj031ro.edf';
+%p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALITracker_Data/aj031ro/aj031ro.edf';
 myparticipant = participant(p_folder, 'samples', true);
 myparticipant.set_trial_features(1:70,'start_event',"Study_display", 'end_event', "Study_timer")
 
