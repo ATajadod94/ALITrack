@@ -45,11 +45,6 @@ classdef trial < handle
         
     end
     
-    properties (Access = private)
-        baseref;  %reference to base object
-    end
-    
-    
     methods
         function obj = trial(participant, trial_no, varargin)
             % Given a parent data file, the data and a trial number with
@@ -75,22 +70,7 @@ classdef trial < handle
             obj.rois.single = [];
             obj.rois.combined = [];
         end
-        
-        %         function plot(obj)
-        %             [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
-        %             num_samples = length(obj.theta);
-        %             color_per_sample = 10;
-        %             num_colors = ceil(num_samples / color_per_sample);
-        %             colorvector = [255:-255/num_colors:0;zeros(1,num_colors+1) ;0:255/num_colors:255]'/255;
-        %             for i =2:num_colors-1
-        %               polarplot(obj.theta((i-1)*color_per_sample:i*color_per_sample) ...
-        %               , obj.rho((i-1)*color_per_sample:i*color_per_sample), 'color', ...
-        %               colorvector(i,:));
-        %               hold on;
-        %             end
-        %         end
-        
-        
+             
         function animate(obj)
             % Creates and draws an animation plot for the trial 
             h = animatedline('MaximumNumPoints',1,'color', 'r', 'marker','*');
@@ -453,7 +433,7 @@ classdef trial < handle
         end
         
         function recurrence(obj, varargin)
-            obj.calcHits('rois', 'grid16')
+            obj.calcHits('rois', {'grid_16'})
         
             
         end
