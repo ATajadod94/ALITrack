@@ -377,14 +377,14 @@ classdef trial < handle
                 
                 coords = ceil(coords);
                 idx = sub2ind([yres,xres],coords(:,2),coords(:,1));
-                overlap = ismember(idx, find(roi_mask));
+                overlap = roi_mask(idx);            
                 
                 if strcmpi(p.Results.type,'fixations')
-                   obj.fixations.hits = overlap';     
+                   obj.rois.single(r).hits = overlap';     
                 elseif strcmpi(p.Results.type,'saccade_start')
-                   obj.saccades.start_hits = overlap';     
+                   obj.rois.single(r).hits = overlap';     
                 elseif strcmpi(p.Results.type,'saccade_end')
-                   obj.saccades.end_hits = overlap';     
+                   obj.rois.single(r).hits = overlap';     
                 end
                 
             end
@@ -412,7 +412,7 @@ classdef trial < handle
                 gridsize = sqrt(gcd(xres,yres)); % better way to calculate the default size? eg, gcf of  xres yres
             end
            
-           total_grids = xres/ gridsize;
+           total_grids = floor(xres/ gridsize);
            all_grids = cell(1,total_grids);
            mygrid = zeros(yres,xres);
            
@@ -433,13 +433,34 @@ classdef trial < handle
         end
         
         function recurrence(obj, varargin)
-            obj.calcHits('rois', {'grid_16'})
-        
+            
+            %% Fixed Grid method
+            obj.calcHits('rois', {'grid_50'})
+            grid_hits = obj.rois.single(1).hits;
+            recurrance_scatter = zeros(length(grid_hits),length(grid_hits));
+            for  i = 1:length(grid_hits)
+                   hits = find(grid_hits == grid_hits(i));
+                   recurrance_scatter(i, hits) = 1;
+            end
+           %  spy(recurrance_scatter);
+             
+            %% Fixation distance method
+            radius = 60; 
+            n = obj.fixations.number;
+            distance_matrix = util.fixation_distance(obj.fixations);
+            distance_matrix(find(distance_matrix <= radius)) = 1;
+            distance_matrix(find(distance_matrix > radius)) = 0;
+            spy(distance_matrix);            
+            R = (sum(sum(distance_matrix)) - b)/2;
+            Rec = 100  * (2 * R)/ (n * (n-1));
+            Determinism = 100 * abs(n)/R;
+            % better way of doing it : numel(find(distance_matrix))/ numel(distance_matrix)
+            end
             
         end
-      end
+ end
       
 
         
         
-end
+
