@@ -195,6 +195,22 @@ classdef trial < handle
             obj.saccades.amplitude =  trial_data.Saccades.ampl(obj.saccades.rawindex);
         end
         
+        function set_eyelink_saccade(obj)
+            %% detects saccades based on existing eyelink defenition 
+            % intializing the eyelink theresholds
+            thereshold.acceleration = deg2rad(8000);
+            thereshold.velocity = deg2rad(30);
+            thereshold.degree = 0.5;   %% different for psych studies 
+                 
+            [velocity, acceleration] = util.get_angular_speed(obj.x,obj.y);
+            
+            detected_saccades = velocity(1:end-1) > thereshold.velocity &...
+                                acceleration > thereshold.acceleration ;
+            
+            
+            
+            
+        end
         function get_issaccade(obj)
             % sets the issaccade vector.
             obj.issaccade = zeros(1,obj.num_samples);
@@ -423,7 +439,6 @@ classdef trial < handle
                for i = 1:length(xbreaks)-1
                    for j = 1:length(ybreaks)-1
                        mygrid(xbreaks(i):xbreaks(i+1),ybreaks(j):ybreaks(j+1))  = i;
-
                    end
                end
                all_grids(grid_num) = {mygrid}; 
@@ -432,8 +447,7 @@ classdef trial < handle
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
         end
         
-        function recurrence(obj, varargin)
-            
+        function recurrence(obj, varargin)            
             %% Fixed Grid method
             obj.calcHits('rois', {'grid_50'})
             grid_hits = obj.rois.single(1).hits;

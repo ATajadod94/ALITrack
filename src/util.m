@@ -32,6 +32,23 @@ classdef util < handle
             
         end
         
+        function [velocity,acceleration] = get_angular_speed(x,y)
+            % assuming constant time sampling 
+            % math per https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-07-dynamics-fall-2009/lecture-notes/MIT16_07F09_Lec05.pdf
+            [theta, r] = cart2pol(x,y);
+            er = cos(x)+ sin(y);
+            et = - sin(y) + cos(x);
+            d_er = et;
+            d_et = -er;
+            %radical_velocity = diff(x) .* er(1:end-1) + ...
+            %                r(1:end-1) .*  d_er(1:end-1);
+            velocity = r .* er ;
+                      %      r(1:end-1) .* diff(theta) .* d_et(1:end-1);
+            acceleration = r .* d_er;
+            %er(1:end-2) .* (diff(diff(r)) - r(1:end-2) .* diff(diff(theta))) ;
+                %% +  et(1:end-2) .* (r(1:end-2) .* diff(diff(theta)) + 2 * diff(r(1:end-1)) .* diff(theta(1:end-1)));           
+        end
+        
         
     end
     
