@@ -222,10 +222,9 @@ classdef trial < handle
             if isempty(obj.rho)
                 obj.get_polar
             end
-            [ obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y,0.07 , 3, 4 , 3 , 4, 1000);
+            [obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y, 70 , 3, 4 , 3 , 4, obj.get_time('ms'));
             saccade_detector = find(obj.angular_velocity > thereshold.velocity & ....
                             obj.angular_acceleration > thereshold.acceleration);
-                            
             obj.saccades.eye_link.start_idx = saccade_detector(diff(saccade_detector) == 1);
             obj.saccades.eye_link.start_time = obj.get_time('',obj.saccades.eye_link.start_idx);    
             obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 20000);
