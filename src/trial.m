@@ -14,7 +14,9 @@ classdef trial < handle
         rho % Distance parameter of the sample Eye momvemnt in polar form
         theta % Angle parametger of the sample Eye movement in polar form
         issaccadeorfixation % Indicates whether each sample is a saccade(1) or fixation (-1) or neither (0)
-        
+        angular_velocity % angular_speed in rad / s
+        angular_acceleration % angular_accelration in rad /s^2
+        angle_change % change in anglular values in rad
         %Fixation features
         fixations = struct()
         %             fixation_start
@@ -46,6 +48,7 @@ classdef trial < handle
     end
     
     methods
+        %% Initalization methods 
         function obj = trial(participant, trial_no, varargin)
             % Given a parent data file, the data and a trial number with
             % optional arguments for start and end time of relevant data
@@ -69,12 +72,15 @@ classdef trial < handle
             obj.trial_time = (obj.sample_time(:) - obj.sample_time(1))';
             obj.rois.single = [];
             obj.rois.combined = [];
-        end
-             
+        end             
         function animate(obj)
             % Creates and draws an animation plot for the trial 
             h = animatedline('MaximumNumPoints',1,'color', 'r', 'marker','*');
             a = tic;
+            xdim =  obj.parent.screen.dims(2);
+            ydim = obj.parent.screen.dims(1);
+            xlim ([0 xdim])
+            ylim([0 ydim])
             for k = 1:length(obj.x)
                 addpoints(h,obj.x(k),obj.y(k));
                 b = toc(a);
@@ -84,13 +90,11 @@ classdef trial < handle
                 end
             end
         end
-        
         function get_polar(obj)
             % sets the polar cordinates for the trial. Saved in the theta
             % and rho properties
             [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
-        end
-        
+        end        
         function set_trial_features(obj,varargin)
             obj.number_of_fixation
             obj.number_of_saccade
@@ -104,9 +108,31 @@ classdef trial < handle
             obj.get_polar
             obj.get_issaccade
             obj.get_isfixation
+        end        
+        function time = get_time(obj,varargin)
+            % assumes edf time values are microsecond 
+            % returns trial indexed time values 
+            try 
+                idx = varargin{2};
+            catch 
+                idx = 1:obj.num_samples;
+            end
+            
+            if nargin == 1
+                time  = double(obj.trial_time(idx)); 
+            else
+                switch(varargin{1})
+                    case 'ms'
+                        time = double(obj.trial_time(idx)) / 1000;
+                    case 's'
+                        time = double(obj.trial_time(idx)) / 1000000;                 
+                    otherwise
+                        disp('time_unit identifier not found, or left blank, default units used')
+                        time = double(obj.trial_time(idx));  
+                end
+            end
         end
-        % ====== Feature detection methods =======
-        %% Fixation methods
+        %% Feature methods 
         function number_of_fixation(obj)
             % sets the number of fixations for the trial
             trial_data = obj.parent.getdata(obj);
@@ -117,38 +143,33 @@ classdef trial < handle
             obj.fixations.start = obj.trial_time(col);
             [~,col,~] =  find(obj.index == trial_data.Fixations.entime(intrial_index));
             obj.fixations.end = obj.trial_time(col);
-        end   
-        
+        end         
         function duration_of_fixation(obj)
             if length(obj.fixations.end) < length(obj.fixations.start)
                 obj.fixations.end = [obj.fixations.end , obj.trial_time(end)];
             end
             obj.fixations.duration = obj.fixations.end - obj.fixations.start ;
-        end
-        
+        end       
         function deviation_of_duration_of_fixation(obj)
             % sets the deviation of saccades  duration for the trial
             if isfield(obj.fixations, 'duration')
                 duration_of_fixation(obj)
             end
             obj.fixations.duration_variation = util.zscore(obj.fixations.duration);           
-        end
-        
+        end       
         function location_of_fixation(obj)
             % sets the location of fixation for the trial
             trial_data = obj.parent.getdata(obj);
             obj.fixations.average_gazex = trial_data.Fixations.gavx(obj.fixations.rawindex);
             obj.fixations.average_gazey = trial_data.Fixations.gavy(obj.fixations.rawindex);
-        end
-        
-       function get_isfixation(obj)
+        end       
+        function get_isfixation(obj)
             % sets the issaccade vector.  Also creates fixation_start,
             % num_samples and sample_times
             obj.isfixation = zeros(1,obj.num_samples);
             [~,col,~ ] = find(obj.fixations.start' <= obj.trial_time & obj.trial_time <= obj.fixations.end');
             obj.isfixation(col) = 1;
-        end
-        
+        end       
         %% Saccade methods
         function number_of_saccade(obj)
             % sets the number of saccades for the trial
@@ -160,16 +181,14 @@ classdef trial < handle
             obj.saccades.start = obj.trial_time(col);
             [~,col,~] =  find(obj.index == trial_data.Saccades.entime(intrial_index));
             obj.saccades.end = obj.trial_time(col);
-        end
-        
+        end       
         function duration_of_saccade(obj)
             % sets the duraiton of saccades for the trial
             if length(obj.saccades.end) < length(obj.saccades.start)
                 obj.saccades.end = [obj.saccades.end , obj.trial_time(end)];
             end
             obj.saccades.duration = obj.fixations.end - obj.fixations.start ;
-        end
-        
+        end       
         function deviation_of_duration_of_saccade(obj)
             % Sets the deviation of duration for saccades for the
             % saccades
@@ -178,8 +197,7 @@ classdef trial < handle
             end
             
             obj.saccades.duration_variation = util.zscore(double(obj.saccades.duration));
-        end
-        
+        end        
         function location_of_saccade(obj)
             % sets the location of saccades points  for the trial
             trial_data = obj.parent.getdata(obj);
@@ -187,39 +205,39 @@ classdef trial < handle
             obj.saccades.start_gazey = trial_data.Saccades.gsty(obj.saccades.rawindex);
             obj.saccades.end_gazex = trial_data.Saccades.genx(obj.saccades.rawindex);
             obj.saccades.end_gazey = trial_data.Saccades.geny(obj.saccades.rawindex);
-        end
-            
+        end            
         function amplitude_of_saccade(obj)
             % sets the amplitude of saccades for the trial
             trial_data = obj.parent.getdata(obj);
             obj.saccades.amplitude =  trial_data.Saccades.ampl(obj.saccades.rawindex);
         end
-        
         function set_eyelink_saccade(obj)
             %% detects saccades based on existing eyelink defenition 
+            obj.saccades.eye_link = struct();
             % intializing the eyelink theresholds
-            thereshold.acceleration = deg2rad(8000);
-            thereshold.velocity = deg2rad(30);
+            thereshold.acceleration = 8000;
+            thereshold.velocity = 30;
             thereshold.degree = 0.5;   %% different for psych studies 
                  
-            [velocity, acceleration] = util.get_angular_speed(obj.x,obj.y);
-            
-            detected_saccades = velocity(1:end-1) > thereshold.velocity &...
-                                acceleration > thereshold.acceleration ;
-            
-            
-            
-            
-        end
+            if isempty(obj.rho)
+                obj.get_polar
+            end
+            [ obj.angular_velocity,obj.angular_acceleration] = util.get_angular_speed(obj.x,obj.y,obj.get_time('s'));
+            saccade_detector = find(obj.angular_velocity > thereshold.velocity & ....
+                            obj.angular_acceleration > thereshold.acceleration);
+                            
+            obj.saccades.eye_link.start_idx = saccade_detector(diff(saccade_detector) == 1);
+            obj.saccades.eye_link.start_time = obj.get_time('',obj.saccades.eye_link.start_idx);    
+            obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 20000);
+            obj.saccades.eye_link.defenition = thereshold;              
+        end     
         function get_issaccade(obj)
             % sets the issaccade vector.
             obj.issaccade = zeros(1,obj.num_samples);
             [~,col,~ ] = find(obj.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
             obj.issaccade(col) = 1;
-        end
-        
-        %% ROI features 
-        
+        end 
+        %% ROI features       
         function obj=makeROIs(obj,pos,varargin)
             
             p = inputParser;
@@ -301,8 +319,7 @@ classdef trial < handle
                 end
                 
             end
-        end
-            
+        end            
         function obj=combineROIs(obj,RoiIndex)
             % zhongxu add: specifiy which ROIs need to be combined, not  just combined all
             % TODO: these line of codes are ugly, need to be simplified.
@@ -339,9 +356,8 @@ classdef trial < handle
             
             obj.rois.combined = combined;
             
-        end
-        
-       function obj = calcHits(obj,varargin)
+        end        
+        function obj = calcHits(obj,varargin)
             %wrapper for calcEyehits_ to make it easier to repeat for
             %fixations and saccades.
             p = inputParser;
@@ -352,8 +368,7 @@ classdef trial < handle
             obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_start');
             obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
             
-       end
-        
+       end       
         function obj= calcEyehits_(obj,varargin)
             %internal function for calculating whether fixations/saccades
             %hit a given roi or not.
@@ -404,21 +419,7 @@ classdef trial < handle
                 end
                 
             end
-        end
-% 
-%         function regionsofinterest(obj)
-%             %doesn't do anything useful =] (yet)
-%             if isempty(obj.fixation_location)
-%                 location_of_fixation(obj)
-%             end
-%             figure
-%             hold on
-%             a = [obj.fixation_location' , kmeans(obj.fixation_location',10)];
-%             for i=1:10
-%                 scatter(a(a(:,3) == i,1), a(a(:,3) == i,2))
-%             end
-%         end
-        
+        end  
         function set_grid(obj, gridsize)
             %size could either be a vectory or a value for square sized 
             xres = obj.parent.screen.dims(1);
@@ -445,8 +446,7 @@ classdef trial < handle
                mygrid = zeros(yres,xres);
            end
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
-        end
-        
+        end       
         function recurrence(obj, varargin)            
             %% Fixed Grid method
             obj.calcHits('rois', {'grid_50'})
@@ -469,12 +469,23 @@ classdef trial < handle
             Rec = 100  * (2 * R)/ (n * (n-1));
             Determinism = 100 * abs(n)/R;
             % better way of doing it : numel(find(distance_matrix))/ numel(distance_matrix)
-            end
-            
-        end
+        end            
+     end
  end
       
-
+% 
+%         function regionsofinterest(obj)
+%             %doesn't do anything useful =] (yet)
+%             if isempty(obj.fixation_location)
+%                 location_of_fixation(obj)
+%             end
+%             figure
+%             hold on
+%             a = [obj.fixation_location' , kmeans(obj.fixation_location',10)];
+%             for i=1:10
+%                 scatter(a(a(:,3) == i,1), a(a(:,3) == i,2))
+%             end
+%         end
         
         
 
