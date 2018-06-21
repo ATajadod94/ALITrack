@@ -222,7 +222,7 @@ classdef trial < handle
             if isempty(obj.rho)
                 obj.get_polar
             end
-            [ obj.angular_velocity,obj.angular_acceleration] = util.get_angular_speed(obj.x,obj.y,obj.get_time('s'));
+            [ obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y,0.07 , 3, 4 , 3 , 4, 1000);
             saccade_detector = find(obj.angular_velocity > thereshold.velocity & ....
                             obj.angular_acceleration > thereshold.acceleration);
                             
