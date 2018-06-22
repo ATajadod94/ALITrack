@@ -133,7 +133,7 @@ classdef trial < handle
                 end
             end
         end
-        %% Feature methods 
+        %% Fixation methods 
         function number_of_fixation(obj)
             % sets the number of fixations for the trial
             trial_data = obj.parent.getdata(obj);
@@ -148,19 +148,33 @@ classdef trial < handle
             obj.fixations.start = obj.trial_time(col);
             [~,col,~] =  find(obj.index == trial_data.Fixations.entime(intrial_index));
             obj.fixations.end = obj.trial_time(col);
+            
+            if length(obj.fixations.start) < length(obj.fixations.end)
+               obj.fixations.start = [0 ,  obj.fixations.start];
+            end
         end         
         function duration_of_fixation(obj)
-            if length(obj.fixations.end) < length(obj.fixations.start)
-                obj.fixations.end = [obj.fixations.end , obj.trial_time(end)];
-            end
             obj.fixations.duration = obj.fixations.end - obj.fixations.start ;
-        end       
+        end   
+        function avarage_fixation_duration(obj)
+           %sets the average duration of all fixations
+           obj.fixations.average_duration = mean(obj.fixations.duration);
+        end
+        function max_fixation_duration(obj)
+           %sets the max duration of all fixations
+           [obj.fixations.max_duration, obj.fixations.max_duration_index] = max(obj.fixations.duration);
+        end
+        function min_fixation_duration(obj) 
+            %sets the min duration of all fixations
+           [obj.fixations.min_duration, obj.fixations.min_duration_index] = min(obj.fixations.duration);
+        end
         function deviation_of_duration_of_fixation(obj)
             % sets the deviation of saccades  duration for the trial
             if isfield(obj.fixations, 'duration')
                 duration_of_fixation(obj)
             end
-            obj.fixations.duration_variation = util.zscore(obj.fixations.duration);           
+            obj.fixations.duration_standard_deviation = std(double(obj.fixations.duration));
+            obj.fixations.duration_zscore = util.zscore(obj.fixations.duration);           
         end       
         function location_of_fixation(obj)
             % sets the location of fixation for the trial
@@ -173,7 +187,7 @@ classdef trial < handle
             % num_samples and sample_times
             obj.isfixation = zeros(1,obj.num_samples);
             [~,col,~ ] = find(obj.fixations.start' <= obj.trial_time & obj.trial_time <= obj.fixations.end');
-            obj.isfixation(col) = 1;
+            obj.fixations.isfixation(col) = 1;
         end       
         %% Saccade methods
         function number_of_saccade(obj)

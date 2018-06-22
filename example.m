@@ -16,13 +16,18 @@ myparticipant = participant(p_folder, 'samples', true);
 
 trial = gettrial(myparticipant,1,'start_event','stimDisplay', 'end_event', 'stimDuration');
 trial.number_of_fixation
-trial.number_of_saccade
 trial.duration_of_fixation
+trial.avarage_fixation_duration
+trial.max_fixation_duration
+trial.min_fixation_duration
+trial.deviation_of_duration_of_fixation
+
+
+trial.number_of_saccade
 trial.duration_of_saccade
 trial.location_of_fixation
 trial.location_of_saccade
 trial.amplitude_of_saccade
-trial.deviation_of_duration_of_fixation
 trial.deviation_of_duration_of_saccade
 trial.set_grid('default')
 trial.animate()
