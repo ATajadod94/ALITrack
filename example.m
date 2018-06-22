@@ -6,14 +6,15 @@ close all;
 %myparticipant = participant(2003, p_folder);
 %p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/aj031ro.edf';
 %p_folder = '/Users/Ali/Desktop/Baycrest/ALITrack/testdata/aj031ro.edf';
-p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sver101/sver101.edf';
 
 myparticipant = participant(p_folder, 'samples', true);
-tic
-myparticipant.set_trial_features(1:864,'start_event','stimDisplay', 'end_event', 'stimDuration')
-toc
+%myparticipant.set_trial_features(1,'start_event','stimDisplay', 'end_event', 'stimDuration')
 
-trial = gettrial(myparticipant,1);
+%% Elapsed time is 261.141535 seconds.
+
+
+trial = gettrial(myparticipant,1,'start_event','stimDisplay', 'end_event', 'stimDuration');
 trial.number_of_fixation
 trial.number_of_saccade
 trial.duration_of_fixation

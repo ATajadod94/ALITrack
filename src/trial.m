@@ -2,7 +2,8 @@ classdef trial < handle
     % inherited from data. Sets, calculates and plots trial specific data
     properties
         parent % Reference to parent object
-        data %Data_file , extracted from participant's ztrack
+        start_time %Trial indexed start time of the all data in this trial obj 
+        end_time % Trial indexed end time of the all data in this trial obj 
         trial_no % Number of Trial
         trial_fieldname % Fieldname of Trial in string format
         num_samples % Number of samples
@@ -53,19 +54,18 @@ classdef trial < handle
             % Given a parent data file, the data and a trial number with
             % optional arguments for start and end time of relevant data
             % creates a trial object. Also sets the x and y parameter
-
             if nargin == 3
                 time = varargin{1};
-                start_time = time(1);
-                end_time = time(2);
+                obj.start_time = time(1);
+                obj.end_time = time(2);
             end
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
             obj.parent = participant;
             trial_data = obj.parent.getdata(obj);
             
-            full_trial_time =[0:trial_data.numsamples-1] .* 1/(trial_data.sample_rate/1000);
-            obj.index = find(full_trial_time >= start_time,1):find(full_trial_time >= end_time,1);   
+            full_trial_time =0:trial_data.numsamples-1 .* 1/(trial_data.sample_rate/1000);
+            obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
             obj.x = trial_data.gx(obj.index);
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
@@ -137,7 +137,11 @@ classdef trial < handle
         function number_of_fixation(obj)
             % sets the number of fixations for the trial
             trial_data = obj.parent.getdata(obj);
-            intrial_index = find(ismember(trial_data.Fixations.sttime,obj.index));
+            minimum_duration = 100;
+            intrial_index = find(ismember(trial_data.Fixations.entime,obj.index));
+            if trial_data.Fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
+                intrial_index = intrial_index(2:end);
+            end
             obj.fixations.rawindex = intrial_index;
             obj.fixations.number = length(intrial_index);
             [~,col,~] =  find(obj.index == trial_data.Fixations.sttime(intrial_index));
@@ -174,8 +178,12 @@ classdef trial < handle
         %% Saccade methods
         function number_of_saccade(obj)
             % sets the number of saccades for the trial
+            minimum_duration = 100;
             trial_data = obj.parent.getdata(obj);
-            intrial_index = find(ismember(trial_data.Saccades.sttime,obj.index));
+            intrial_index = find(ismember(trial_data.Saccades.entime,obj.index));
+            if trial_data.Fixations.entime(intrial_index(1))- obj.start_time  <  minimum_duration
+                intrial_index = intrial_index(2:end);
+            end
             obj.saccades.rawindex = intrial_index;
             obj.saccades.number = length(intrial_index);
             [~,col,~] =  find(obj.index == trial_data.Saccades.sttime(intrial_index));
