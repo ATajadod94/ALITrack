@@ -62,9 +62,10 @@ classdef trial < handle
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
             obj.parent = participant;
-            obj.index = start_time:end_time;
-            
             trial_data = obj.parent.getdata(obj);
+            
+            full_trial_time =[0:trial_data.numsamples-1] .* 1/(trial_data.sample_rate/1000);
+            obj.index = find(full_trial_time >= start_time,1):find(full_trial_time >= end_time,1);   
             obj.x = trial_data.gx(obj.index);
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
@@ -222,7 +223,7 @@ classdef trial < handle
             if isempty(obj.rho)
                 obj.get_polar
             end
-            [obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y, 70 , 3, 4 , 3 , 4, obj.get_time('ms'));
+            [obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y, 7 , 3, 4 , 3 , 4, obj.get_time('ms'));
             saccade_detector = find(obj.angular_velocity > thereshold.velocity & ....
                             obj.angular_acceleration > thereshold.acceleration);
             obj.saccades.eye_link.start_idx = saccade_detector(diff(saccade_detector) == 1);

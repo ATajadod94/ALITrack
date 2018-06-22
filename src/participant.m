@@ -27,15 +27,16 @@ classdef participant < iTrack
           p = inputParser;
           addRequired(p, 'obj')
           addRequired(p, 'trial_number')
-          addOptional(p,'start_event',"Study_display");
-          addOptional(p,'end_event',"Study_timer");
-          p.parse(p,obj,trial_number, varargin{:})
-          
+          addOptional(p,'start_event','Study_display');
+          addOptional(p,'end_event','Study_timer');
+          p.parse(p,obj,trial_number, varargin{:});
+          start_event = p.Results.start_event;
+          end_event = p.Results.end_event;
           %% Finding start/end time 
-          start_time = extract_event(obj  ,'search','Study_display','time',true,'behfield',true);
-          start_time = start_time.data{1, 1}(trial_number).beh.Study_display;
-          end_time = extract_event(obj  ,'search','Study_timer','time',true,'behfield',true);
-          end_time = end_time.data{1, 1}(trial_number).beh.Study_timer;
+          start_time = extract_event(obj  ,'search',start_event,'time',true,'behfield',true);
+          start_time = start_time.data{1, 1}(trial_number).beh.(start_event);
+          end_time = extract_event(obj  ,'search', end_event,'time',true,'behfield',true);
+          end_time = end_time.data{1, 1}(trial_number).beh.(end_event);
           requested_trial = trial(obj, trial_number,[start_time,end_time]);
       end
       
