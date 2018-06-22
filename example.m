@@ -9,11 +9,11 @@ close all;
 p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sver101/sver101.edf';
 
 myparticipant = participant(p_folder, 'samples', true);
-%myparticipant.set_trial_features(1,'start_event','stimDisplay', 'end_event', 'stimDuration')
+%myparticipant.set_trial_features('all','start_event','stimDisplay', 'end_event', 'stimDuration')
 
 %% Elapsed time is 261.141535 seconds.
 
-
+tic
 trial = gettrial(myparticipant,1,'start_event','stimDisplay', 'end_event', 'stimDuration');
 trial.number_of_fixation
 trial.duration_of_fixation
@@ -21,14 +21,18 @@ trial.avarage_fixation_duration
 trial.max_fixation_duration
 trial.min_fixation_duration
 trial.deviation_of_duration_of_fixation
-
+trial.location_of_fixation
 
 trial.number_of_saccade
 trial.duration_of_saccade
-trial.location_of_fixation
-trial.location_of_saccade
-trial.amplitude_of_saccade
 trial.deviation_of_duration_of_saccade
+trial.amplitude_of_saccade
+trial.deviation_of_amplitude_of_saccade
+trial.average_saccade_amplitude
+trial.location_of_saccade
+toc %Elapsed time is 0.085973 seconds.
+
+
 trial.set_grid('default')
 trial.animate()
 

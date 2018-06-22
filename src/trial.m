@@ -211,14 +211,27 @@ classdef trial < handle
                 obj.saccades.end = [obj.saccades.end , obj.trial_time(end)];
             end
             obj.saccades.duration = obj.fixations.end - obj.fixations.start ;
-        end       
+        end   
+        function amplitude_of_saccade(obj)
+            % sets the amplitude of saccades for the trial
+            trial_data = obj.parent.getdata(obj);
+            obj.saccades.amplitude =  trial_data.Saccades.ampl(obj.saccades.rawindex);
+        end
+        function deviation_of_amplitude_of_saccade(obj)
+            obj.saccades.amplitude_standard_deviation = std(double(obj.saccades.amplitude));
+            obj.saccades.amplitude_variation = util.zscore(double(obj.saccades.amplitude));
+        end
+        function average_saccade_amplitude(obj)
+            % sets the avereage amplitude of saccadess
+            obj.saccades.average_amplitude =  mean(obj.saccades.amplitude);
+        end
         function deviation_of_duration_of_saccade(obj)
             % Sets the deviation of duration for saccades for the
             % saccades
             if isfield(obj.saccades, 'duration')
                 duration_of_saccade(obj)
             end
-            
+            obj.saccades.duration_standard_deviation = std(double(obj.saccades.duration));
             obj.saccades.duration_variation = util.zscore(double(obj.saccades.duration));
         end        
         function location_of_saccade(obj)
@@ -229,11 +242,6 @@ classdef trial < handle
             obj.saccades.end_gazex = trial_data.Saccades.genx(obj.saccades.rawindex);
             obj.saccades.end_gazey = trial_data.Saccades.geny(obj.saccades.rawindex);
         end            
-        function amplitude_of_saccade(obj)
-            % sets the amplitude of saccades for the trial
-            trial_data = obj.parent.getdata(obj);
-            obj.saccades.amplitude =  trial_data.Saccades.ampl(obj.saccades.rawindex);
-        end
         function set_eyelink_saccade(obj)
             %% detects saccades based on existing eyelink defenition 
             obj.saccades.eye_link = struct();
@@ -257,9 +265,9 @@ classdef trial < handle
             % sets the issaccade vector.
             obj.issaccade = zeros(1,obj.num_samples);
             [~,col,~ ] = find(obj.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
-            obj.issaccade(col) = 1;
+            obj.saccades.issaccade(col) = 1;
         end 
-        %% ROI features       
+        %% ROI methods        
         function obj=makeROIs(obj,pos,varargin)
             
             p = inputParser;
@@ -468,7 +476,8 @@ classdef trial < handle
                mygrid = zeros(yres,xres);
            end
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
-        end       
+        end      
+        % Extended methods
         function recurrence(obj, varargin)            
             %% Fixed Grid method
             obj.calcHits('rois', {'grid_50'})
@@ -491,7 +500,10 @@ classdef trial < handle
             Rec = 100  * (2 * R)/ (n * (n-1));
             Determinism = 100 * abs(n)/R;
             % better way of doing it : numel(find(distance_matrix))/ numel(distance_matrix)
-        end            
+        end         
+        function entropy(obj)
+            obj;
+        end
      end
  end
       
