@@ -27,7 +27,6 @@ classdef trial < handle
         %             fixation_duration_variation % variation in the duraiton of fixation
         %             isfixation % Array indicating whether each sample is part of a fixation
         
-        isfixation  % Array indicatig whether each sample is part of a fixation
         
         %Saccade features
         saccades = struct()
@@ -36,9 +35,7 @@ classdef trial < handle
         %             num_saccades % Number of saccades in trial
         %             saccade_location % Location of Saccades, includes starting points (saccade_location[1:2, :] and end points saccade_location[3:4,:]
         %             saccade_duration_variation %Variation in saccade durations
-        
-        issaccade   % Array indicatig whether each sample is oart of a saccade
-        
+                
         % ROIs
         rois = struct()
 
@@ -185,7 +182,7 @@ classdef trial < handle
         function get_isfixation(obj)
             % sets the issaccade vector.  Also creates fixation_start,
             % num_samples and sample_times
-            obj.isfixation = zeros(1,obj.num_samples);
+            obj.fixations.isfixation = zeros(1,obj.num_samples);
             [~,col,~ ] = find(obj.fixations.start' <= obj.trial_time & obj.trial_time <= obj.fixations.end');
             obj.fixations.isfixation(col) = 1;
         end       
@@ -207,9 +204,6 @@ classdef trial < handle
         end       
         function duration_of_saccade(obj)
             % sets the duraiton of saccades for the trial
-            if length(obj.saccades.end) < length(obj.saccades.start)
-                obj.saccades.end = [obj.saccades.end , obj.trial_time(end)];
-            end
             obj.saccades.duration = obj.fixations.end - obj.fixations.start ;
         end   
         function amplitude_of_saccade(obj)
@@ -263,7 +257,7 @@ classdef trial < handle
         end     
         function get_issaccade(obj)
             % sets the issaccade vector.
-            obj.issaccade = zeros(1,obj.num_samples);
+            obj.saccades.issaccade = zeros(1,obj.num_samples);
             [~,col,~ ] = find(obj.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
             obj.saccades.issaccade(col) = 1;
         end 
