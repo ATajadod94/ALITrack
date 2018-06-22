@@ -6,7 +6,7 @@ close all;
 %myparticipant = participant(2003, p_folder);
 %p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/aj031ro.edf';
 %p_folder = '/Users/Ali/Desktop/Baycrest/ALITrack/testdata/aj031ro.edf';
-p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sver101/sver101.edf';
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
 
 myparticipant = participant(p_folder, 'samples', true);
 %myparticipant.set_trial_features('all','start_event','stimDisplay', 'end_event', 'stimDuration')

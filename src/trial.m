@@ -59,14 +59,15 @@ classdef trial < handle
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
             obj.parent = participant;
-            trial_data = obj.parent.getdata(obj);
-            
-            full_trial_time =0:trial_data.numsamples-1 .* 1/(trial_data.sample_rate/1000);
+            trial_data = obj.parent.getdata(obj);         
+            full_trial_time = [0:trial_data.numsamples-1] * 2;
             obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
+            trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
+            trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
             obj.x = trial_data.gx(obj.index);
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
-            obj.sample_time = trial_data.StartTime + uint32(0:obj.num_samples - 1) * uint32(trial_data.sample_rate);
+            obj.sample_time = trial_data.StartTime + uint32(0:obj.num_samples - 1) * uint32(trial_data.sample_rate/1000);
             obj.trial_time = (obj.sample_time(:) - obj.sample_time(1))';
             obj.rois.single = [];
             obj.rois.combined = [];
@@ -247,18 +248,17 @@ classdef trial < handle
             if isempty(obj.rho)
                 obj.get_polar
             end
-            [obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y, 7 , 3, 4 , 3 , 4, obj.get_time('ms'));
-            saccade_detector = find(obj.angular_velocity > thereshold.velocity & ....
-                            obj.angular_acceleration > thereshold.acceleration);
+            [obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 1000);
+            saccade_detector = find(obj.angular_velocity > thereshold.velocity && obj.angular_acceleration > thereshold.acceleration);
             obj.saccades.eye_link.start_idx = saccade_detector(diff(saccade_detector) == 1);
             obj.saccades.eye_link.start_time = obj.get_time('',obj.saccades.eye_link.start_idx);    
-            obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 20000);
+            obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 20);
             obj.saccades.eye_link.defenition = thereshold;              
         end     
         function get_issaccade(obj)
             % sets the issaccade vector.
             obj.saccades.issaccade = zeros(1,obj.num_samples);
-            [~,col,~ ] = find(obj.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
+            [~,col,~ ] = find(obj.angular_acceleration.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
             obj.saccades.issaccade(col) = 1;
         end 
         %% ROI methods        
