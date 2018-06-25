@@ -258,7 +258,7 @@ classdef trial < handle
         function get_issaccade(obj)
             % sets the issaccade vector.
             obj.saccades.issaccade = zeros(1,obj.num_samples);
-            [~,col,~ ] = find(obj.angular_acceleration.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
+            [~,col,~ ] = find(obj.saccades.start' <= obj.trial_time & obj.trial_time <= obj.saccades.end');
             obj.saccades.issaccade(col) = 1;
         end 
         %% ROI methods        
@@ -392,7 +392,7 @@ classdef trial < handle
             obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_start');
             obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
             
-       end       
+       end      
         function obj= calcEyehits_(obj,varargin)
             %internal function for calculating whether fixations/saccades
             %hit a given roi or not.
