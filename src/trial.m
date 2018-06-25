@@ -253,7 +253,7 @@ classdef trial < handle
             saccade_detector = find(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
             obj.saccades.eye_link.start_idx = saccade_detector;
             obj.saccades.eye_link.start_time = obj.get_time('',obj.saccades.eye_link.start_idx);    
-            obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 20);
+            obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 200);
             obj.saccades.eye_link.defenition = thereshold;              
         end     
         function get_issaccade(obj)
@@ -496,8 +496,24 @@ classdef trial < handle
             Determinism = 100 * abs(n)/R;
             % better way of doing it : numel(find(distance_matrix))/ numel(distance_matrix)
         end         
-        function entropy(obj)
-            obj;
+        function entropy(obj, varargin)
+            p = inputParser;
+            p.addParameter('rois','all',@(x) iscell(x) || ischar(x));
+            parse(p,varargin{:});         
+            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','fixations');
+            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_start');
+            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
+            
+            looked_at = ... 
+        end
+        function plot_angular_velocity(obj)
+            figure
+            hold on;
+            plot(obj.x)
+            plot(obj.y)
+            plot(obj.angular_velocity)
+            plot(obj.angular_acceleration/100)
+            legend('x','y','velocty','acceleration')
         end
      end
  end
