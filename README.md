@@ -40,8 +40,7 @@ Check example.m for sample usage of the repo.
 ### Prerequisites
 
   Matlab
-  https://github.com/jashubbard/iTrack/tree/master/support/edfImport
-
+  https://github.com/ATajadod94/iTrack
 ```
 Give examples
 ```
