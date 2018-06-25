@@ -500,11 +500,15 @@ classdef trial < handle
             p = inputParser;
             p.addParameter('rois','all',@(x) iscell(x) || ischar(x));
             parse(p,varargin{:});         
-            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','fixations');
-            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_start');
-            obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
+            calcEyehits_(obj,'rois',p.Results.rois,'type','fixations');
+            %calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_start');
+            %calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
             
-            looked_at = ... 
+            number_of_regions = 10;
+            looked_regions = [1,3,2,2,2,5,6,7,9,4,10,9];
+            
+            looked_regions =looked_regions(diff(looked_regions) ~= 0);
+            get_ent(number_of_regions, looked_regions)
         end
         function plot_angular_velocity(obj)
             figure
