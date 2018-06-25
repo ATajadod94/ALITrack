@@ -22,7 +22,6 @@ classdef participant < iTrack
           %Returns the requested trial number as a trial object. If given
           %a start_event and end_event, it will accordingly bound the
           %data
-          
           %% Parsing Arguments
           p = inputParser;
           addRequired(p, 'obj')

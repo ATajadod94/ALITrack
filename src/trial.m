@@ -517,7 +517,7 @@ classdef trial < handle
             plot(obj.y)
             plot(obj.angular_velocity)
             plot(obj.angular_acceleration/100)
-            legend('x','y','velocty','acceleration')
+            legend('x','y','velocty','acceleration/100')
         end
      end
  end
