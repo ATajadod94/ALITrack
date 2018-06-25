@@ -40,7 +40,8 @@ trial.animate()
 
 
 %% in development 
-trial.set_eyelink_saccade
+trial.set_eyelink_saccade(1) %% 1 indicates using the default thereshold 
+
 
 %condition(myparticipant, @fixmlt_importer);
 

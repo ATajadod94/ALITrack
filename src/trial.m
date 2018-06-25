@@ -60,14 +60,14 @@ classdef trial < handle
             obj.trial_no = trial_no;
             obj.parent = participant;
             trial_data = obj.parent.getdata(obj);         
-            full_trial_time = [0:trial_data.numsamples-1] * 2;
+            full_trial_time =  1000* (0:trial_data.numsamples-1) * 1/trial_data.sample_rate; % covert to ms , for all samples * frequency 
             obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
             trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
             trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
             obj.x = trial_data.gx(obj.index);
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
-            obj.sample_time = trial_data.StartTime + uint32(0:obj.num_samples - 1) * uint32(trial_data.sample_rate/1000);
+            obj.sample_time = full_trial_time(obj.index);
             obj.trial_time = (obj.sample_time(:) - obj.sample_time(1))';
             obj.rois.single = [];
             obj.rois.combined = [];
@@ -237,20 +237,21 @@ classdef trial < handle
             obj.saccades.end_gazex = trial_data.Saccades.genx(obj.saccades.rawindex);
             obj.saccades.end_gazey = trial_data.Saccades.geny(obj.saccades.rawindex);
         end            
-        function set_eyelink_saccade(obj)
+        function set_eyelink_saccade(obj, thereshold)
             %% detects saccades based on existing eyelink defenition 
             obj.saccades.eye_link = struct();
             % intializing the eyelink theresholds
-            thereshold.acceleration = 8000;
-            thereshold.velocity = 30;
-            thereshold.degree = 0.5;   %% different for psych studies 
-                 
-            if isempty(obj.rho)
-                obj.get_polar
+            if ~isstruct(thereshold)
+                thereshold = struct();
+                thereshold.acceleration = 8000; % deg/s 
+                thereshold.velocity = 30; % deg / s^2
+                thereshold.degree = 0.5; % deg
+                thereshold.saccade_duration = 20; %ms
             end
-            [obj.angular_velocity,obj.angular_acceleration] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 1000);
-            saccade_detector = find(obj.angular_velocity > thereshold.velocity && obj.angular_acceleration > thereshold.acceleration);
-            obj.saccades.eye_link.start_idx = saccade_detector(diff(saccade_detector) == 1);
+                 
+            [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
+            saccade_detector = find(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
+            obj.saccades.eye_link.start_idx = saccade_detector;
             obj.saccades.eye_link.start_time = obj.get_time('',obj.saccades.eye_link.start_idx);    
             obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 20);
             obj.saccades.eye_link.defenition = thereshold;              

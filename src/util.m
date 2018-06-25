@@ -32,7 +32,7 @@ classdef util < handle
             
         end
       
-       function [acceleration,speed] = Speed_Deg(X, Y, distance , height_mm, width_mm , height_px , width_px, hz)
+       function [acceleration,speed] = Speed_Deg(X, Y, distance, height_mm, width_mm , height_px , width_px, hz)
             hor = atan((width_mm / 2) / distance) * (180 / pi) * 2 / width_px * X;
             ver = atan((height_mm / 2) / distance) * (180 / pi) * 2 / height_px * Y;
             % bin into groups 
@@ -41,9 +41,8 @@ classdef util < handle
             %ver_grouped = arrayfun(@(i) mean(ver(i:i+num_bins-1)),1:num_bins:length(ver) - num_bins+1);
             %time_grouped = arrayfun(@(i) mean(time(i:i+num_bins-1)),1:num_bins:length(time) - num_bins+1);
             speed = [0, sqrt(diff(hor(1:2:end)).^2 + diff(ver(1:2:end)).^2) * (hz/2)];
-            acceleration =  [0,diff(speed) * (hz)];
             speed = repelem(speed,2);
-            acceleration = repelem(acceleration,2);
+            acceleration =  diff([0,speed]) * (hz);
        end 
 
         
