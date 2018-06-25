@@ -68,7 +68,7 @@ classdef trial < handle
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
             obj.sample_time = full_trial_time(obj.index);
-            obj.trial_time = (obj.sample_time(:) - obj.sample_time(1))';
+            obj.trial_time = obj.sample_time - obj.sample_time(1);
             obj.rois.single = [];
             obj.rois.combined = [];
         end             
@@ -513,10 +513,10 @@ classdef trial < handle
         function plot_angular_velocity(obj)
             figure
             hold on;
-            plot(obj.x)
-            plot(obj.y)
-            plot(obj.angular_velocity)
-            plot(obj.angular_acceleration/100)
+            plot(obj.trial_time,obj.x)
+            plot(obj.trial_time,obj.y)
+            plot(obj.trial_time,obj.angular_velocity)
+            plot(obj.trial_time,obj.angular_acceleration/100)
             legend('x','y','velocty','acceleration/100')
         end
      end
