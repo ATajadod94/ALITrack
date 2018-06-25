@@ -1,9 +1,10 @@
 
 ## Overview
       To create a Matlab package that is able to create features for any given EDF file in a user friendly manner. 
-      Furthermore, it aims to provide certain utility-like feature detection functionalities for eye_movement data processed elsewhere. 
-      The package builds on top of (inherits) iTrack by Jason Hubbard, as modified by Dr.Liu . It aims to build on top of iTrack as well
-      as improve certain existing functionalities. iTrack itself is no longer being developed. 
+      Furthermore, it aims to provide certain utility-like feature detection functionalities for eye_movement 
+      data processed elsewhere.  The package builds on top of (inherits) iTrack by Jason Hubbard, as modified by
+      Dr.Liu.It aims to build on top of iTrack as well as improve certain existing functionalities.
+      iTrack itself is no longer being developed. 
       
 Available features : 
 * Reading EDF data into Matlab
