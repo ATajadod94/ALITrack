@@ -40,9 +40,9 @@ classdef util < handle
             %hor_grouped = arrayfun(@(i) mean(hor(i:i+num_bins-1)),1:num_bins:length(hor) - num_bins+1);
             %ver_grouped = arrayfun(@(i) mean(ver(i:i+num_bins-1)),1:num_bins:length(ver) - num_bins+1);
             %time_grouped = arrayfun(@(i) mean(time(i:i+num_bins-1)),1:num_bins:length(time) - num_bins+1);
-            speed = [0, sqrt(diff(hor(1:2:end)).^2 + diff(ver(1:2:end)).^2) * (hz/2)];
+            speed = [sqrt(diff(hor(1:2:end)).^2 + diff(ver(1:2:end)).^2) * (hz/2), 0 ];
             speed = repelem(speed,2);
-            acceleration =  diff([0,speed]) * (hz);
+            acceleration =  diff([speed , 0]) * (hz);
         end
         
         function get_ent(number_of_regions, looked_regions)

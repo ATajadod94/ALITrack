@@ -1,3 +1,10 @@
+%{
+To Do list : 
+1) Make all saccade variables the same dimensions
+
+
+
+%} 
 classdef trial < handle
     % inherited from data. Sets, calculates and plots trial specific data
     properties
@@ -60,7 +67,7 @@ classdef trial < handle
             obj.trial_no = trial_no;
             obj.parent = participant;
             trial_data = obj.parent.getdata(obj);         
-            full_trial_time =  1000* (0:trial_data.numsamples-1) * 1/trial_data.sample_rate; % covert to ms , for all samples * frequency 
+            full_trial_time = 1 +  1000*  (0:trial_data.numsamples-1) * 1/trial_data.sample_rate; % covert to ms , for all samples * frequency 
             obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
             trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
             trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
@@ -68,27 +75,10 @@ classdef trial < handle
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
             obj.sample_time = full_trial_time(obj.index);
-            obj.trial_time = obj.sample_time - obj.sample_time(1);
+            obj.trial_time = 1+obj.sample_time - obj.sample_time(1);
             obj.rois.single = [];
             obj.rois.combined = [];
         end             
-        function animate(obj)
-            % Creates and draws an animation plot for the trial 
-            h = animatedline('MaximumNumPoints',1,'color', 'r', 'marker','*');
-            a = tic;
-            xdim =  obj.parent.screen.dims(2);
-            ydim = obj.parent.screen.dims(1);
-            xlim ([0 xdim])
-            ylim([0 ydim])
-            for k = 1:length(obj.x)
-                addpoints(h,obj.x(k),obj.y(k));
-                b = toc(a);
-                if b > 0.001
-                    drawnow
-                    a = tic;
-                end
-            end
-        end
         function get_polar(obj)
             % sets the polar cordinates for the trial. Saved in the theta
             % and rho properties
@@ -192,20 +182,20 @@ classdef trial < handle
             % sets the number of saccades for the trial
             minimum_duration = 100;
             trial_data = obj.parent.getdata(obj);
-            intrial_index = find(ismember(trial_data.Saccades.entime,obj.index));
-            if trial_data.Fixations.entime(intrial_index(1))- obj.start_time  <  minimum_duration
+            intrial_index = find(ismember(double(trial_data.Saccades.entime),obj.sample_time));
+            if trial_data.Saccades.entime(intrial_index(1))- obj.start_time  <  minimum_duration
                 intrial_index = intrial_index(2:end);
             end
             obj.saccades.rawindex = intrial_index;
             obj.saccades.number = length(intrial_index);
-            [~,col,~] =  find(obj.index == trial_data.Saccades.sttime(intrial_index));
+            [~,col,~] =  find(obj.sample_time == trial_data.Saccades.sttime(intrial_index));
             obj.saccades.start = obj.trial_time(col);
-            [~,col,~] =  find(obj.index == trial_data.Saccades.entime(intrial_index));
+            [~,col,~] =  find(obj.sample_time == trial_data.Saccades.entime(intrial_index));
             obj.saccades.end = obj.trial_time(col);
         end       
         function duration_of_saccade(obj)
             % sets the duraiton of saccades for the trial
-            obj.saccades.duration = obj.fixations.end - obj.fixations.start ;
+            obj.saccades.duration = obj.saccades.end - obj.saccades.start ;
         end   
         function amplitude_of_saccade(obj)
             % sets the amplitude of saccades for the trial
@@ -252,8 +242,9 @@ classdef trial < handle
             [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
             saccade_detector = find(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
             obj.saccades.eye_link.start_idx = saccade_detector;
-            obj.saccades.eye_link.start_time = obj.get_time('',obj.saccades.eye_link.start_idx);    
-            obj.saccades.eye_link.start_time = obj.saccades.eye_link.start_time(diff(obj.saccades.eye_link.start_time) > 100);
+            obj.saccades.eye_link.start_time = [0, obj.get_time('',obj.saccades.eye_link.start_idx)];
+            tmp = find(diff(obj.saccades.eye_link.start_time) > 20)+1;
+            obj.saccades.eye_link.start_time  = obj.saccades.eye_link.start_time(tmp);
             obj.saccades.eye_link.defenition = thereshold;              
         end     
         function get_issaccade(obj)
@@ -263,7 +254,7 @@ classdef trial < handle
             obj.saccades.issaccade(col) = 1;
         end 
         %% ROI methods        
-        function obj=makeROIs(obj,pos,varargin)
+        function makeROIs(obj,pos,varargin)
             
             p = inputParser;
             p.addParameter('radius',50,@isnumeric);
@@ -345,7 +336,7 @@ classdef trial < handle
                 
             end
         end            
-        function obj=combineROIs(obj,RoiIndex)
+        function combineROIs(obj,RoiIndex)
             % zhongxu add: specifiy which ROIs need to be combined, not  just combined all
             % TODO: these line of codes are ugly, need to be simplified.
             if nargin ==1
@@ -382,7 +373,7 @@ classdef trial < handle
             obj.rois.combined = combined;
             
         end        
-        function obj = calcHits(obj,varargin)
+        function calcHits(obj,varargin)
             %wrapper for calcEyehits_ to make it easier to repeat for
             %fixations and saccades.
             p = inputParser;
@@ -394,7 +385,7 @@ classdef trial < handle
             obj = calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
             
        end      
-        function obj= calcEyehits_(obj,varargin)
+        function calcEyehits_(obj,varargin)
             %internal function for calculating whether fixations/saccades
             %hit a given roi or not.
             p = inputParser;
@@ -510,15 +501,44 @@ classdef trial < handle
             looked_regions =looked_regions(diff(looked_regions) ~= 0);
             get_ent(number_of_regions, looked_regions)
         end
+        % Plotting methods
         function plot_angular_velocity(obj)
             figure
             hold on;
             plot(obj.trial_time,obj.x)
             plot(obj.trial_time,obj.y)
-            plot(obj.trial_time,obj.angular_velocity)
+            plot(obj.trial_time,obj.angular_velocity,'linewidth',2)
             plot(obj.trial_time,obj.angular_acceleration/100)
+            % should set some plot specifications here 
+            for saccade = obj.saccades.start
+                plot([saccade saccade], [1 1000], 'r:','linewidth', 1)
+            end
+            line([0 4000],[30 30])
+            line([0 4000],[80 80])
+            for saccade = obj.saccades.eye_link.start_time
+                plot([saccade saccade], [1 1000], 'b:','linewidth', 1)
+            end
             legend('x','y','velocty','acceleration/100')
+
         end
+        function animate(obj)
+            % Creates and draws an animation plot for the trial 
+            h = animatedline('MaximumNumPoints',1,'color', 'r', 'marker','*');
+            a = tic;
+            xdim =  obj.parent.screen.dims(2);
+            ydim = obj.parent.screen.dims(1);
+            xlim ([0 xdim])
+            ylim([0 ydim])
+            for k = 1:length(obj.x)
+                addpoints(h,obj.x(k),obj.y(k));
+                b = toc(a);
+                if b > 0.001
+                    drawnow
+                    a = tic;
+                end
+            end
+        end
+
      end
  end
       
