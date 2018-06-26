@@ -4,11 +4,10 @@ close all;
 %using Participant Class
 %p_folder= '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003';
 %myparticipant = participant(2003, p_folder);
-%p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/aj031ro.edf';
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/aj031ro.edf';
 %p_folder = '/Users/Ali/Desktop/Baycrest/ALITrack/testdata/aj031ro.edf';
-p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
-
-myparticipant = participant(p_folder, 'samples', true);
+%p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
+myparticipant = participant(1,p_folder, 'samples', true);
 %myparticipant.set_trial_features('all','start_event','stimDisplay', 'end_event', 'stimDuration')
 % Elapsed time is 261.141535 seconds.
 

@@ -1,18 +1,14 @@
 classdef participant < iTrack
     % Get Data, Trials , conditions and features for a given participant
     properties
-        id  % Participant identifier
-        address % Path of the participant's data folder
         trials % Collection of Trial objects
-    end
-    
+    end    
     methods
-        function obj = participant(varargin)
-            % Creates a participant object given an Id and path.
-            obj = obj@iTrack(varargin{:});
-        end
-        
-        
+        function obj = participant(use_edf,varargin)
+            if use_edf
+               obj = iTrack(varargin(2:end));
+            end        
+        end             
         %function setcondition(obj, fcn)
         %      %Sets behaviorual condition data for the participant.
         %   obj.condition = condition(obj, fcn); %no I didn't matlab
