@@ -7,7 +7,8 @@ close all;
 p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/aj031ro.edf';
 %p_folder = '/Users/Ali/Desktop/Baycrest/ALITrack/testdata/aj031ro.edf';
 %p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
-myparticipant = participant(1,p_folder, 'samples', true);
+myparticipant = participant(0,'num_trials', 2, 'x', {[1,2,3],[2,3,2]}, 'y' , {1,2},'time',{1,2});
+myparticipant2 = participant(1,p_folder, 'samples', true);
 %myparticipant.set_trial_features('all','start_event','stimDisplay', 'end_event', 'stimDuration')
 % Elapsed time is 261.141535 seconds.
 

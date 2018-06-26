@@ -4,16 +4,27 @@ classdef participant < iTrack
         trials % Collection of Trial objects
     end    
     methods
-        function obj = participant(use_edf,varargin)
-            if use_edf
-               obj = iTrack(varargin(2:end));
-            end        
+        function obj = participant(use_edf, varargin)         
+            obj = obj@iTrack(use_edf, varargin{:});
+            if ~use_edf
+                p = inputParser;
+                p.addRequired('use_edf', @(x) x==0)
+                p.addParameter('num_trials', @(x) isscalar(x) );
+                p.addParameter('x',@(x) iscell(x));
+                p.addParameter('y',@(x) iscell(x)); 
+                p.addParameter('time',@(x) iscell(x));
+                p.parse(use_edf,varargin{:})
+               
+                % setting to itrack 
+                obj.raw = p.Results;
+                obj.data = {};
+                obj.data{1} = struct();
+                
+                obj.data{1}.gx = p.Results.x;
+                obj.data{1}.gy = p.Results.y;
+                obj.data{1}.time = p.Results.time;
+            end
         end             
-        %function setcondition(obj, fcn)
-        %      %Sets behaviorual condition data for the participant.
-        %   obj.condition = condition(obj, fcn); %no I didn't matlab
-        %end
-        
         function requested_trial = gettrial(obj, trial_number,varargin)
             %Returns the requested trial number as a trial object. If given
             %a start_event and end_event, it will accordingly bound the
@@ -33,8 +44,7 @@ classdef participant < iTrack
             end_time = extract_event(obj  ,'search', end_event,'time',true,'behfield',true);
             end_time = end_time.data{1, 1}(trial_number).beh.(end_event);
             requested_trial = trial(obj, trial_number,[start_time,end_time]);
-        end
-        
+        end      
         function set_trial_features(obj,trial_numbers,varargin)
             % Sets all features available for the given trials in the
             % participant object's trials. Check Trial documentaiton for more
@@ -80,14 +90,12 @@ classdef participant < iTrack
                 plot([saccade/2 saccade/2], [1 1000])
             end
         end
-    end
-    
-    methods(Static)
-        
+    end    
+    methods(Static)        
         function data = getdata(trial)
             data = trial.parent.data{1,1}(trial.trial_no);
-        end
-        
+        end        
     end
     
 end
+
