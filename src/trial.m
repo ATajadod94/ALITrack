@@ -129,15 +129,15 @@ classdef trial < handle
             % sets the number of fixations for the trial
             trial_data = obj.parent.getdata(obj);
             minimum_duration = 100;
-            intrial_index = find(ismember(trial_data.Fixations.entime,obj.index));
-            if trial_data.Fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
+            intrial_index = find(ismember(trial_data.fixations.entime,obj.sample_time));
+            if trial_data.fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
                 intrial_index = intrial_index(2:end);
             end
             obj.fixations.rawindex = intrial_index;
             obj.fixations.number = length(intrial_index);
-            [~,col,~] =  find(obj.index == trial_data.Fixations.sttime(intrial_index));
+            [~,col,~] =  find(obj.sample_time == trial_data.fixations.sttime(intrial_index));
             obj.fixations.start = obj.trial_time(col);
-            [~,col,~] =  find(obj.index == trial_data.Fixations.entime(intrial_index));
+            [~,col,~] =  find(obj.sample_time == trial_data.fixations.entime(intrial_index));
             obj.fixations.end = obj.trial_time(col);
             
             if length(obj.fixations.start) < length(obj.fixations.end)
@@ -170,8 +170,8 @@ classdef trial < handle
         function location_of_fixation(obj)
             % sets the location of fixation for the trial
             trial_data = obj.parent.getdata(obj);
-            obj.fixations.average_gazex = trial_data.Fixations.gavx(obj.fixations.rawindex);
-            obj.fixations.average_gazey = trial_data.Fixations.gavy(obj.fixations.rawindex);
+            obj.fixations.average_gazex = trial_data.fixations.gavx(obj.fixations.rawindex);
+            obj.fixations.average_gazey = trial_data.fixations.gavy(obj.fixations.rawindex);
         end       
         function get_isfixation(obj)
             % sets the issaccade vector.  Also creates fixation_start,
