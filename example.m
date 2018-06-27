@@ -42,7 +42,8 @@ trial.average_saccade_amplitude
 trial.location_of_saccade
 trial.get_issaccade
 
-trial.makeROIs(ones(4,1), 'shape', 'file' ,'fromfile', '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/M102.jpg.ias');
+trial.makeROIs(ones(4,1), 'shape', 'file' ,'fromfile', '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/M102.jpg.ias','clear',1);
+trial.entropy({"1","2","3","4"})
 
 trial.set_grid('default')
 trial.animate()

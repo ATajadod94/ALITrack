@@ -301,7 +301,8 @@ classdef trial < handle
                         roi_details = read_ias(p.Results.fromfile,roi_index+1,roi_index+1); %first row assumed for header
                         xpos = table2array(roi_details(:,[3,5]));
                         ypos = table2array(roi_details(:,[4,6]));
-                        obj.rois.single(roi_number).mask  = XX >= xpos(1) & XX <= xpos(2) &  ...
+                        obj.rois.single(roi_number).mask  = ...
+                            XX >= xpos(1) & XX <= xpos(2) &  ...
                             YY >= ypos(1) & YY <= ypos(2) ;
                         obj.rois.single(roi_number).shape = char(table2array(roi_details(:,1)));
                     otherwise                        
@@ -401,8 +402,7 @@ classdef trial < handle
             p = inputParser;
             p.addParameter('rois','all',@(x) iscell(x) || ischar(x));
             p.addParameter('type','fixations',@ischar);
-            parse(p,varargin{:});
-                        
+            parse(p,varargin{:});                        
             if ~iscell(p.Results.rois) && strcmp(p.Results.rois,'all')
                 rois = {obj.rois.single.name};
             elseif ~iscell(p.Results.rois)
@@ -414,16 +414,11 @@ classdef trial < handle
             numROIs = length(rois);
             
             for r=1:numROIs
-
                 xres = obj.parent.screen.dims(1);
                 yres = obj.parent.screen.dims(2);
-
-                roi_idx = find(ismember({obj.rois.single.name},rois{r}));
-
+                roi_idx = arrayfun(@(s) s.name == rois{r}, obj.rois.single);
                 roi_mask = obj.rois.single(roi_idx).mask;
-
                 %matrix of all coordinates
-                
                 if strcmpi(p.Results.type,'fixations')
                     coords = [obj.fixations.average_gazex,obj.fixations.average_gazey];
                 elseif strcmpi(p.Results.type,'saccade_start')
@@ -497,17 +492,10 @@ classdef trial < handle
             Determinism = 100 * abs(n)/R;
             % better way of doing it : numel(find(distance_matrix))/ numel(distance_matrix)
         end         
-        function entropy(obj, varargin)
-            p = inputParser;
-            p.addParameter('rois','all',@(x) iscell(x) || ischar(x));
-            parse(p,varargin{:});         
-            calcEyehits_(obj,'rois',p.Results.rois,'type','fixations');
-            %calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_start');
-            %calcEyehits_(obj,'rois',p.Results.rois,'type','saccade_end');
-            
-            number_of_regions = 10;
-            looked_regions = [1,3,2,2,2,5,6,7,9,4,10,9];
-            
+        function entropy(obj, rois)        
+            obj.calcEyehits_('rois', rois);           
+            number_of_regions = length(rois);
+            looked_regions(1:rois) = [];           
             looked_regions =looked_regions(diff(looked_regions) ~= 0);
             get_ent(number_of_regions, looked_regions)
         end
@@ -553,7 +541,7 @@ classdef trial < handle
  end
       
 
- function roi_table = read_ias(filename, startrow, endrow)
+ function roi_table = read_ias(filename, startRow, endRow)
         % reads user_inputted ias masks
         % assumes  Format for each line of text:
         %   column1: categorical (%C)
@@ -566,7 +554,7 @@ classdef trial < handle
         delimiter = '\t';
         formatSpec = '%C%f%f%f%f%f%s%[^\n\r]';
         fileID = fopen(filename,'r');
-        dataArray = textscan(fileID, formatSpec, startrow:endrow, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines' , 1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
+        dataArray = textscan(fileID, formatSpec, endRow-startRow+1, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines' , 1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
         fclose(fileID);       
         roi_table = table(dataArray{1:end-1});
 
