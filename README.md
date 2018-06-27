@@ -94,6 +94,9 @@ trial.deviation_of_duration_of_fixation
 trial.deviation_of_duration_of_saccade
 trial.regionsofinterest
 
+## Naming Conventions 
+
+1. Participant level properties are upper case
 
 
 ## Contributing
