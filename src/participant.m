@@ -1,23 +1,49 @@
 classdef participant < iTrack
     % Get Data, Trials , conditions and features for a given participant
     properties
-        id  % Participant identifier
-        address % Path of the participant's data folder
         trials % Collection of Trial objects
-    end
-    
+        num_trials % number of trials for a given participant 
+    end    
     methods
-        function obj = participant(varargin)
-            % Creates a participant object given an Id and path.
-            obj = obj@iTrack(varargin{:});
-        end
-        
-        
-        %function setcondition(obj, fcn)
-        %      %Sets behaviorual condition data for the participant.
-        %   obj.condition = condition(obj, fcn); %no I didn't matlab
-        %end
-        
+        function obj = participant(use_edf, varargin)         
+            obj = obj@iTrack(use_edf, varargin{:});
+            if ~use_edf
+                p = inputParser;
+                p.addRequired('use_edf', @(x) x==0)
+                p.addParameter('num_trials', @(x) isscalar(x) );
+                p.addParameter('x',@(x) iscell(x));
+                p.addParameter('y',@(x) iscell(x)); 
+                p.addParameter('time',@(x) iscell(x));
+                p.addParameter('events',@(x) iscell(x));
+                p.parse(use_edf,varargin{:})
+               
+                obj.num_trials = p.Results.num_trials;
+                % initlizing to itrack's data strcture
+                obj.raw = p.Results;
+                obj.data = {};
+                obj.data{1} = struct();
+                obj.data{1}(obj.num_trials).gx = [];
+                obj.data{1}(obj.num_trials).gy = [];
+                obj.data{1}(obj.num_trials).time = [];
+                obj.data{1}(obj.num_trials).numsamples = [];
+                 
+                obj.data{1}(obj.num_trials).events = struct();
+                obj.data{1}(obj.num_trials).events.message = {};
+                obj.data{1}(obj.num_trials).events.time = {};
+                % vectorized way of setting multiple structs 
+                [obj.data{1}.gx] = p.Results.x{:}; 
+                [obj.data{1}.gy] = p.Results.y{:};
+                [obj.data{1}.time] = p.Results.time{:};
+                events = num2cell(p.Results.events); 
+                [obj.data{1}.events] = events{:};  
+              
+                for i=1:obj.num_trials
+                    obj.data{1}(i).numsamples = length(obj.data{1}(i).gx);
+                    obj.data{1}(i).sample_rate = 1000*unique(diff(obj.data{1}(i).time));
+                end
+                
+            end 
+        end             
         function requested_trial = gettrial(obj, trial_number,varargin)
             %Returns the requested trial number as a trial object. If given
             %a start_event and end_event, it will accordingly bound the
@@ -37,8 +63,7 @@ classdef participant < iTrack
             end_time = extract_event(obj  ,'search', end_event,'time',true,'behfield',true);
             end_time = end_time.data{1, 1}(trial_number).beh.(end_event);
             requested_trial = trial(obj, trial_number,[start_time,end_time]);
-        end
-        
+        end      
         function set_trial_features(obj,trial_numbers,varargin)
             % Sets all features available for the given trials in the
             % participant object's trials. Check Trial documentaiton for more
@@ -84,14 +109,12 @@ classdef participant < iTrack
                 plot([saccade/2 saccade/2], [1 1000])
             end
         end
-    end
-    
-    methods(Static)
-        
+    end    
+    methods(Static)        
         function data = getdata(trial)
             data = trial.parent.data{1,1}(trial.trial_no);
-        end
-        
+        end        
     end
     
 end
+
