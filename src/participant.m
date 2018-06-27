@@ -23,15 +23,26 @@ classdef participant < iTrack
                 obj.data = {};
                 obj.data{1} = struct();
                 obj.data{1}(obj.num_trials).gx = [];
-                obj.data{1}(obj.num_trials).gx = [];
-                obj.data{1}(obj.num_trials).gx = [];
-                obj.data{1}(obj.num_trials).gx = [];
+                obj.data{1}(obj.num_trials).gy = [];
+                obj.data{1}(obj.num_trials).time = [];
+                obj.data{1}(obj.num_trials).numsamples = [];
+                 
+                obj.data{1}(obj.num_trials).events = struct();
+                obj.data{1}(obj.num_trials).events.message = {};
+                obj.data{1}(obj.num_trials).events.time = {};
                 % vectorized way of setting multiple structs 
                 [obj.data{1}.gx] = p.Results.x{:}; 
                 [obj.data{1}.gy] = p.Results.y{:};
                 [obj.data{1}.time] = p.Results.time{:};
-                [obj.data{1}.events] = p.Results.events{:};
-            end
+                events = num2cell(p.Results.events); 
+                [obj.data{1}.events] = events{:};  
+              
+                for i=1:obj.num_trials
+                    obj.data{1}(i).numsamples = length(obj.data{1}(i).gx);
+                    obj.data{1}(i).sample_rate = 1000*unique(diff(obj.data{1}(i).time));
+                end
+                
+            end 
         end             
         function requested_trial = gettrial(obj, trial_number,varargin)
             %Returns the requested trial number as a trial object. If given

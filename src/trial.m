@@ -66,11 +66,14 @@ classdef trial < handle
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
             obj.parent = participant;
-            trial_data = obj.parent.getdata(obj);         
+            trial_data = obj.parent.getdata(obj);       
             full_trial_time = 1 +  1000*  (0:trial_data.numsamples-1) * 1/trial_data.sample_rate; % covert to ms , for all samples * frequency 
             obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
-            trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
-            trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
+            
+            if isfield('dims',obj.parent.screen)
+                trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
+                trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
+            end
             obj.x = trial_data.gx(obj.index);
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
