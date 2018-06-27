@@ -2,6 +2,7 @@ classdef participant < iTrack
     % Get Data, Trials , conditions and features for a given participant
     properties
         trials % Collection of Trial objects
+        num_trials % number of trials for a given participant 
     end    
     methods
         function obj = participant(use_edf, varargin)         
@@ -13,16 +14,23 @@ classdef participant < iTrack
                 p.addParameter('x',@(x) iscell(x));
                 p.addParameter('y',@(x) iscell(x)); 
                 p.addParameter('time',@(x) iscell(x));
+                p.addParameter('events',@(x) iscell(x));
                 p.parse(use_edf,varargin{:})
                
-                % setting to itrack 
+                obj.num_trials = p.Results.num_trials;
+                % initlizing to itrack's data strcture
                 obj.raw = p.Results;
                 obj.data = {};
                 obj.data{1} = struct();
-                
-                obj.data{1}.gx = p.Results.x;
-                obj.data{1}.gy = p.Results.y;
-                obj.data{1}.time = p.Results.time;
+                obj.data{1}(obj.num_trials).gx = [];
+                obj.data{1}(obj.num_trials).gx = [];
+                obj.data{1}(obj.num_trials).gx = [];
+                obj.data{1}(obj.num_trials).gx = [];
+                % vectorized way of setting multiple structs 
+                [obj.data{1}.gx] = p.Results.x{:}; 
+                [obj.data{1}.gy] = p.Results.y{:};
+                [obj.data{1}.time] = p.Results.time{:};
+                [obj.data{1}.events] = p.Results.events{:};
             end
         end             
         function requested_trial = gettrial(obj, trial_number,varargin)
