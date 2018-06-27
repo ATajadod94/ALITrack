@@ -1,8 +1,8 @@
 %{
 To Do list : 
 1) Make all saccade variables the same dimensions
-
-
+2) Naming conventions (participant level vs trial level)
+3) confirm read_ias , take varaibles or default bhv?
 
 %} 
 classdef trial < handle
@@ -129,15 +129,15 @@ classdef trial < handle
             % sets the number of fixations for the trial
             trial_data = obj.parent.getdata(obj);
             minimum_duration = 100;
-            intrial_index = find(ismember(trial_data.fixations.entime,obj.sample_time));
-            if trial_data.fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
+            intrial_index = find(ismember(trial_data.Fixations.entime,obj.sample_time));
+            if trial_data.Fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
                 intrial_index = intrial_index(2:end);
             end
             obj.fixations.rawindex = intrial_index;
             obj.fixations.number = length(intrial_index);
-            [~,col,~] =  find(obj.sample_time == trial_data.fixations.sttime(intrial_index));
+            [~,col,~] =  find(obj.sample_time == trial_data.Fixations.sttime(intrial_index));
             obj.fixations.start = obj.trial_time(col);
-            [~,col,~] =  find(obj.sample_time == trial_data.fixations.entime(intrial_index));
+            [~,col,~] =  find(obj.sample_time == trial_data.Fixations.entime(intrial_index));
             obj.fixations.end = obj.trial_time(col);
             
             if length(obj.fixations.start) < length(obj.fixations.end)
@@ -170,8 +170,8 @@ classdef trial < handle
         function location_of_fixation(obj)
             % sets the location of fixation for the trial
             trial_data = obj.parent.getdata(obj);
-            obj.fixations.average_gazex = trial_data.fixations.gavx(obj.fixations.rawindex);
-            obj.fixations.average_gazey = trial_data.fixations.gavy(obj.fixations.rawindex);
+            obj.fixations.average_gazex = trial_data.Fixations.gavx(obj.fixations.rawindex);
+            obj.fixations.average_gazey = trial_data.Fixations.gavy(obj.fixations.rawindex);
         end       
         function get_isfixation(obj)
             % sets the issaccade vector.  Also creates fixation_start,
@@ -257,20 +257,20 @@ classdef trial < handle
             obj.saccades.issaccade(col) = 1;
         end 
         %% ROI methods        
-        function makeROIs(obj,pos,varargin)
-            
+        function makeROIs(obj,pos,varargin)            
             p = inputParser;
             p.addParameter('radius',50,@isnumeric);
-            p.addParameter('shape','circle',@(x) ismember(x,{'circle','circular','ellipse','elliptical','square','rectangle','userDefined'})); %zhongxu add 'userDefined'
+            p.addParameter('shape','circle',@(x) ismember(x,{'circle','circular','ellipse','elliptical','square','rectangle','userDefined','file'})); %zhongxu add 'userDefined'
             p.addParameter('xradius',50,@isnumeric);
             p.addParameter('yradius',10,@isnumeric);
             p.addParameter('angle',0,@(x) min(x)>=0 && max(x)<= 360);
             p.addParameter('clear',0);
             p.addParameter('userDefinedMask',{},@iscell);
+            p.addParameter('fromfile','', @(x) exist(x,'file'))
             p.addParameter('names',{},@iscell);
             parse(p,varargin{:});
             
-            if p.Results.clear==1
+            if p.Results.clear==1 || ~isfield(obj.rois,'single')
                 obj.rois.single = [];
                 obj.rois.combined = [];
                 num_existingrois = 0;
@@ -286,22 +286,29 @@ classdef trial < handle
                 names = p.Results.names;
             end
             
-            for roi_number = 1:length(number_of_rois)
+            for roi_number = number_of_rois , roi_index = roi_number - num_existingrois; 
                 %% For all Roi
-                obj.rois.single(roi_number).name = names{roi_number};
-                obj.rois.single(roi_number).coords = pos(roi_number,:);
+                obj.rois.single(roi_number).name = names(roi_index);
+                obj.rois.single(roi_number).coords = pos(roi_index,:);
                 
                 switch p.Results.shape
                     case 'userDefined'                       
                         obj.rois.single(roi_number).shape = 'userdefined';
-                        obj.rois.single(roi_number).mask = p.Results.userDefinedMask{roi_number};
-                        
-                    otherwise
-                        
-                        obj.rois.single(roi_number).shape = p.Reults.shape(roi_number);
-                        obj.rois.single(roi_number).radius = p.Results.radius(roi_number);
-                        obj.rois.single(roi_number).xradius = p.Results.xradius(roi_number);
-                        obj.rois.single(roi_number).yradius = p.Results.yradius(roi_number);
+                        obj.rois.single(roi_number).mask = p.Results.userDefinedMask{roi_index};
+                    case 'file'
+                        [XX, YY] = meshgrid(0:(obj.parent.screen.dims(1)-1),...
+                            0:(obj.parent.screen.dims(2)-1));
+                        roi_details = read_ias(p.Results.fromfile,roi_index+1,roi_index+1); %first row assumed for header
+                        xpos = table2array(roi_details(:,[3,5]));
+                        ypos = table2array(roi_details(:,[4,6]));
+                        obj.rois.single(roi_number).mask  = XX >= xpos(1) & XX <= xpos(2) &  ...
+                            YY >= ypos(1) & YY <= ypos(2) ;
+                        obj.rois.single(roi_number).shape = char(table2array(roi_details(:,1)));
+                    otherwise                        
+                        obj.rois.single(roi_number).shape = p.Results.shape(roi_index);
+                        obj.rois.single(roi_number).radius = p.Results.radius(roi_index);
+                        obj.rois.single(roi_number).xradius = p.Results.xradius(roi_index);
+                        obj.rois.single(roi_number).yradius = p.Results.yradius(roi_index);
                         
                         xcenter = floor(obj.parent.screen.dims(1)/2);
                         ycenter = floor(obj.parent.screen.dims(2)/2);
@@ -313,7 +320,7 @@ classdef trial < handle
                         
                         switch p.Results.shape
                             case {'circle','circular'}
-                                obj.rois.single(roi_number).mask = sqrt(XX-pos(roi_number,1).^2+(YY-pos(roi_number,2).^2))...
+                                obj.rois.single(roi_number).mask = sqrt(XX-pos(roi_index,1).^2+(YY-pos(roi_index,2).^2))...
                                                         <=p.Results.radius;
                                 
                             case {'ellipse','elliptical'}
@@ -322,7 +329,7 @@ classdef trial < handle
                                 
                                 %create an ellipse in the center, then rotate
                                 el=((XX-xcenter)/p.Results.xradius).^2+((YY-ycenter)/p.Results.yradius).^2<=1;
-                                el=imrotate(el,angles(roi_number),'nearest','crop');
+                                el=imrotate(el,angles(roi_index),'nearest','crop');
                                 
                                 %then shift the image so it's centered over the
                                 %correct point
@@ -545,19 +552,22 @@ classdef trial < handle
      end
  end
       
-% 
-%         function regionsofinterest(obj)
-%             %doesn't do anything useful =] (yet)
-%             if isempty(obj.fixation_location)
-%                 location_of_fixation(obj)
-%             end
-%             figure
-%             hold on
-%             a = [obj.fixation_location' , kmeans(obj.fixation_location',10)];
-%             for i=1:10
-%                 scatter(a(a(:,3) == i,1), a(a(:,3) == i,2))
-%             end
-%         end
-        
-        
 
+ function roi_table = read_ias(filename, startrow, endrow)
+        % reads user_inputted ias masks
+        % assumes  Format for each line of text:
+        %   column1: categorical (%C)
+        %	column2: double (%f)
+        %   column3: double (%f)
+        %	column4: double (%f)
+        %   column5: double (%f)
+        %	column6: double (%f)
+        %   column7: text (%s)     
+        delimiter = '\t';
+        formatSpec = '%C%f%f%f%f%f%s%[^\n\r]';
+        fileID = fopen(filename,'r');
+        dataArray = textscan(fileID, formatSpec, startrow:endrow, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines' , 1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
+        fclose(fileID);       
+        roi_table = table(dataArray{1:end-1});
+
+ end 

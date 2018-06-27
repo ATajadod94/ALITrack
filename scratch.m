@@ -31,3 +31,18 @@
         
         
      
+        % 
+%         function regionsofinterest(obj)
+%             %doesn't do anything useful =] (yet)
+%             if isempty(obj.fixation_location)
+%                 location_of_fixation(obj)
+%             end
+%             figure
+%             hold on
+%             a = [obj.fixation_location' , kmeans(obj.fixation_location',10)];
+%             for i=1:10
+%                 scatter(a(a(:,3) == i,1), a(a(:,3) == i,2))
+%             end
+%         end
+        
+        

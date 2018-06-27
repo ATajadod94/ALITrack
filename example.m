@@ -10,6 +10,7 @@ trial.set_eyelink_saccade(1) %% 1 indicates using the default thereshold
 
 
 %% Available edf data for testing 
+%paths are relative to wd of the example script
 
 %{
 p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
@@ -22,9 +23,6 @@ myparticipant = participant(1,p_folder, 'samples', true);
 p_folder = '../../Data/ALItracker_Data/aj031ro/aj031ro.edf';
 myparticipant = participant(1,p_folder, 'samples', true);
 trial = gettrial(myparticipant,1,'start_event','Study_display', 'end_event', 'Blank_display');
-
-
-
 
 trial.number_of_fixation
 trial.duration_of_fixation
@@ -43,17 +41,13 @@ trial.deviation_of_amplitude_of_saccade
 trial.average_saccade_amplitude
 trial.location_of_saccade
 trial.get_issaccade
-%Elapsed time is 0.085973 seconds.
 
+trial.makeROIs(ones(4,1), 'shape', 'file' ,'fromfile', '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/M102.jpg.ias');
 
 trial.set_grid('default')
 trial.animate()
 
-
 trial.set_eyelink_saccade(1) %% 1 indicates using the default thereshold 
-
-
-%condition(myparticipant, @fixmlt_importer);
 
 %windowtype :{durationofword,before,after}
 %followingindex : {how long}
