@@ -3,7 +3,7 @@ To Do list :
 1) Make all saccade variables the same dimensions
 2) Naming conventions (participant level vs trial level)
 3) confirm read_ias , take varaibles or default bhv?
-
+4) remove hits when removing roi
 %} 
 classdef trial < handle
     % inherited from data. Sets, calculates and plots trial specific data
@@ -432,13 +432,28 @@ classdef trial < handle
                 coords = ceil(coords);
                 idx = sub2ind([yres,xres],coords(:,2),coords(:,1));
                 overlap = roi_mask(idx);            
-                
+
                 if strcmpi(p.Results.type,'fixations')
-                   obj.rois.single(r).hits = overlap';     
+                    obj.rois.single(r).hits = overlap';
+                    if ~isfield(obj.fixations,'hits')
+                        obj.fixations.hits = cell(obj.fixations.number,1);
+                    end
+                    for i = 1:obj.fixations.number
+                         obj.fixations.hits{i} = [obj.fixations.hits{i}, {obj.rois.single(r).name}];                
+                    end
                 elseif strcmpi(p.Results.type,'saccade_start')
-                   obj.rois.single(r).hits = overlap';     
+                    obj.rois.single(r).hits = overlap';
+                    if ~isfield(obj.saccades,'starthits')
+                        obj.saccades.starthits = [];
+                    end
+                    obj.saccades.starthits = [obj.saccades.starthits; obj.rois.single(r).name];
+                    
                 elseif strcmpi(p.Results.type,'saccade_end')
-                   obj.rois.single(r).hits = overlap';     
+                    obj.rois.single(r).hits = overlap';
+                    if ~isfield(obj.saccades,'endhits')
+                        obj.saccades.endhits = [];
+                    end
+                    obj.saccades.endhits = [obj.saccades.endhits; obj.rois.single(r).name];
                 end
                 
             end
@@ -497,13 +512,11 @@ classdef trial < handle
         function entropy(obj, rois)        
             obj.calcEyehits_('rois', rois);           
             number_of_regions = length(rois);
-
             for fixation = 1:obj.fixations.number
-                %obj.rois.single.hits(fixation)
-                %roi_idx = find(arrayfun(@(s) s.name == roi{:}, obj.rois.single));
+                obj.rois.single.hits
+                roi_idx = find(arrayfun(@(s) s.name == roi{:}, obj.rois.single));
                 looked_regions(1:rois) = [];   
-            end
-                       
+            end                      
                 looked_regions =looked_regions(diff(looked_regions) ~= 0);
                 get_ent(number_of_regions, looked_regions)
         end
@@ -565,5 +578,4 @@ classdef trial < handle
         dataArray = textscan(fileID, formatSpec, endRow-startRow+1, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines', startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
         fclose(fileID);       
         roi_table = table(dataArray{1:end-1});
-
  end 
