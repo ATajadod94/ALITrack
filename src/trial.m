@@ -298,13 +298,15 @@ classdef trial < handle
                     case 'file'
                         [XX, YY] = meshgrid(0:(obj.parent.screen.dims(1)-1),...
                             0:(obj.parent.screen.dims(2)-1));
-                        roi_details = read_ias(p.Results.fromfile,roi_index+1,roi_index+1); %first row assumed for header
+                        roi_details = read_ias(p.Results.fromfile,roi_index+1,roi_index+1);
                         xpos = table2array(roi_details(:,[3,5]));
                         ypos = table2array(roi_details(:,[4,6]));
                         obj.rois.single(roi_number).mask  = ...
                             XX >= xpos(1) & XX <= xpos(2) &  ...
                             YY >= ypos(1) & YY <= ypos(2) ;
                         obj.rois.single(roi_number).shape = char(table2array(roi_details(:,1)));
+                        obj.rois.single(roi_number).coords = [xpos; ypos];
+
                     otherwise                        
                         obj.rois.single(roi_number).shape = p.Results.shape(roi_index);
                         obj.rois.single(roi_number).radius = p.Results.radius(roi_index);
@@ -495,9 +497,15 @@ classdef trial < handle
         function entropy(obj, rois)        
             obj.calcEyehits_('rois', rois);           
             number_of_regions = length(rois);
-            looked_regions(1:rois) = [];           
-            looked_regions =looked_regions(diff(looked_regions) ~= 0);
-            get_ent(number_of_regions, looked_regions)
+
+            for fixation = 1:obj.fixations.number
+                %obj.rois.single.hits(fixation)
+                %roi_idx = find(arrayfun(@(s) s.name == roi{:}, obj.rois.single));
+                looked_regions(1:rois) = [];   
+            end
+                       
+                looked_regions =looked_regions(diff(looked_regions) ~= 0);
+                get_ent(number_of_regions, looked_regions)
         end
         % Plotting methods
         function plot_angular_velocity(obj)
@@ -554,7 +562,7 @@ classdef trial < handle
         delimiter = '\t';
         formatSpec = '%C%f%f%f%f%f%s%[^\n\r]';
         fileID = fopen(filename,'r');
-        dataArray = textscan(fileID, formatSpec, endRow-startRow+1, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines' , 1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
+        dataArray = textscan(fileID, formatSpec, endRow-startRow+1, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines', startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
         fclose(fileID);       
         roi_table = table(dataArray{1:end-1});
 
