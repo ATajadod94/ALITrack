@@ -1,7 +1,7 @@
 classdef participant < iTrack
     % Get Data, Trials , conditions and features for a given participant
     properties
-        TRIAL % Collection of Trial objects
+        TRIALS % Collection of Trial objects
         NUM_TRIALS % number of trials for a given participant
         EDF_File
     end
@@ -41,11 +41,11 @@ classdef participant < iTrack
                 for i=1:obj.NUM_TRIALS
                     obj.data{1}(i).numsamples = length(obj.data{1}(i).gx);
                     obj.data{1}(i).sample_rate = 1000*unique(diff(obj.data{1}(i).time));
-                end                
+                end
             else
                 obj.NUM_TRIALS = length(obj.data{1});
             end
-           obj.EDF_File = use_edf;  %participant aware of source     
+            obj.EDF_File = use_edf;  %participant aware of source
         end
         function set_trials(obj,varargin)
             % Sets all features available for the given trials in the
@@ -57,7 +57,7 @@ classdef participant < iTrack
             p.parse(obj, varargin{:})
             
             for i = p.Results.trial_number
-                obj(i).TRIAL = trial(obj, i ,varargin{:});
+                obj.TRIALS{i,1} = trial(obj, i ,varargin{:});
             end
         end
         function requested_trial = gettrial(obj, trial_number,varargin)
@@ -68,7 +68,7 @@ classdef participant < iTrack
             p = inputParser;
             addRequired(p, 'obj')
             addRequired(p, 'trial_number')
- 
+            
             p.parse(p,obj,trial_number, varargin{:});
             start_event = p.Results.start_event;
             end_event = p.Results.end_event;
@@ -93,22 +93,24 @@ classdef participant < iTrack
                 plot([saccade/2 saccade/2], [1 1000])
             end
         end
-        
         function varargout = subsref(obj,S)
-           if  ismember(S.subs,[methods('iTrack');properties('iTrack')])
-               [varargout{1:nargout}]  = obj.subsref@iTrack(S);
-           elseif length(S) == 1
-               [objfields,behfields] = get_all_fields(obj);
-               if ismember(S.subs,objfields)
-                   [varargout{1:nargout}]  = obj.subsref@iTrack(S);
-               else
-                   a = 2;
-               end
-               
-           end              
+            [objfields,behfields] = get_all_fields(obj);
+            if length(S) == 1
+                if  ismember(S.subs,[methods('iTrack');properties('iTrack')])
+                    [varargout{1:nargout}]  = obj.subsref@iTrack(S);
+                elseif ismember(S.subs,[methods('participant');properties('participant')])
+                    [varargout{1:nargout}] = builtin('subsref',obj,S);
+                elseif ismember(S.subs,objfields)
+                    [varargout{1:nargout}]  = obj.subsref@iTrack(S);
+                else
+                    a = 2;
+                    error('why are we here')
+                end
+            else
+                [varargout{1:nargout}]  = builtin('subsref',obj,S);
+            end
         end
+        
+        
     end
-
-    
 end
-
