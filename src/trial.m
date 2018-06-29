@@ -54,26 +54,34 @@ classdef trial < handle
     
     methods
         %% Initalization methods 
-        function obj = trial(participant, trial_no, varargin)
-            % Given a parent data file, the data and a trial number with
+        function obj = trial(parent, trial_no, varargin)
+            % Given a parent participant, the data and a trial number with
             % optional arguments for start and end time of relevant data
             % creates a trial object. Also sets the x and y parameter
-            if nargin == 3
-                time = varargin{1};
-                obj.start_time = time(1);
-                obj.end_time = time(2);
-            end
+            p = inputParser;
+            p.addRequired('parent', @(parent) isa(parent, 'participant'))
+            p.addRequired('trial_no',  @(x) isvector(x));
+            p.addOptional('start_event', '' , @(x) ischar(x) | isnum(x))
+            p.addOptional('end_event', '', @(x) ischar(x) | isnum(x))
+            p.addOptional('duration', 4000 , @isscalar)
+            p.parse(parent, trial_no, varargin{:})
+            
+            % main properties  
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
-            obj.parent = participant;
-            trial_data = obj.parent.getdata(obj);       
-            full_trial_time = 1 +  1000*  (0:trial_data.numsamples-1) * 1/trial_data.sample_rate; % covert to ms , for all samples * frequency 
+            obj.parent = parent;
+            % data properties
+            trial_data = obj.get_itrack;  
+            % setting Temporal ROI's if specified
+            [obj.start_time, obj.end_time ,full_trial_time] = ...
+                    obj.get_timeindex(p.Results.start_event, p.Results.end_event);            
             obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
             
             if isfield('dims',obj.parent.screen)
                 trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
                 trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
             end
+            
             obj.x = trial_data.gx(obj.index);
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
@@ -82,11 +90,6 @@ classdef trial < handle
             obj.rois.single = [];
             obj.rois.combined = [];
         end             
-        function get_polar(obj)
-            % sets the polar cordinates for the trial. Saved in the theta
-            % and rho properties
-            [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
-        end        
         function set_trial_features(obj,varargin)
             obj.number_of_fixation
             obj.number_of_saccade
@@ -100,6 +103,13 @@ classdef trial < handle
             obj.get_polar
             obj.get_issaccade
             obj.get_isfixation
+        end
+        
+        %% Helper funcions
+        function get_polar(obj)
+            % sets the polar cordinates for the trial. Saved in the theta
+            % and rho properties
+            [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
         end        
         function time = get_time(obj,varargin)
             % assumes edf time values are microsecond 
@@ -124,7 +134,62 @@ classdef trial < handle
                 end
             end
         end
+        function data = get_itrack(obj)
+            data = obj.parent.data{1,1}(obj.trial_no);
+        end
+        function time = extract_event(obj,event)
+              searchfor = regexprep(event,'[!@#$%^&()?"*+='',./~` ]','');
+              idx = ~cellfun(@isempty,regexp(obj.get_itrack.events.message,event));
+              time = obj.get_itrack.events.message(idx);
+        end
+        function [first, last, full_trial_time]  = get_timeindex(obj,firstinput,lastinput)
+             trial_data = obj.get_itrack;
+             full_trial_time = 1 + 1000*(0:trial_data.numsamples-1) * 1/trial_data.sample_rate;
+             
+             switch firstinput             
+                case ''
+                    first = full_trial_time(1);
+                case ischar
+                    first = obj.extract_event(p.Results.start_event);
+                    if ~ lastinput
+                        first = obj.end_time + p.Results.duration;
+                    end
+                case isscalar
+                    first = p.Results.start_event;
+                    if ~ lastinput
+                        first = obj.end_time + p.Results.duration;
+                    end
+                 otherwise
+                     error ( 'Input must be a string or a number')
+             end           
+            switch lastinput
+                case ''
+                    last = full_trial_time(end);
+                case ischar
+                    last = obj.extract_event(p.Results.start_event);
+                    if ~ firstinput
+                        first = obj.end_time - p.Results.duration;
+                    end
+                case isscalar
+                    last = lastinput;
+                    if ~ firstinput
+                        first = obj.end_time - p.Results.duration;
+                    end
+                otherwise
+                    error ( 'Input must be a string or a number')
+            end           
+        end
         %% Fixation methods 
+        function fixation_base()
+            number_of_fixation
+            duration_of_fixation
+            avarage_fixation_duration
+            max_fixation_duration
+            min_fixation_duration
+        end
+        function fixation_extended(obj)
+            
+        end
         function number_of_fixation(obj)
             % sets the number of fixations for the trial
             trial_data = obj.parent.getdata(obj);
