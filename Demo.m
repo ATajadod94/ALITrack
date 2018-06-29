@@ -8,32 +8,38 @@
 % output : CSV fle duplication dataviewer tempelate 
 
 EDF_File = '../../Data/ALItracker_Data/aj031ro/aj031ro.edf';
+Output_file = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_output.xlsx';
 
 myparticipant = participant(EDF_File);
 myparticipant.set_trials()
 
 % base case
-myparticipant.to_csv()
+myparticipant.to_csv(Output_file)
 
-myparticipant.to_csv('output','eye_link')
+myparticipant.to_csv(Output_file, 'output','eye_link')
 
 
 %Specifying Trials
 
-myparticipant.to_csv(1:10)
+myparticipant.to_csv(Output_file, 'trials', 1:10)
 
-myparticipant.to_csv(1:10,'output','eye_link')
+myparticipant.to_csv(Output_file, 'trials', 1:10,'output','eye_link')
 
 %Specifying Output
 
-myparticipant.to_csv('output', 'base')
+myparticipant.to_csv(Output_file, 'output', 'base')
 
-myparticipant.to_csv('output', ["base" , "saccades", "fixations"])
+myparticipant.to_csv(Output_file, 'output', 'extended')
+
+myparticipant.to_csv(Output_file, 'output', 'saccades')
 
 % Putting it together 
 
-myparticipant.to_csv([5,7,1], 'output', ["base" , "saccades", "fixations"])
+myparticipant.to_csv(Output_file, 'trials', [5,7,1], ...
+            'output', ["base" , "saccades",  "fixations", "extended"])
 
+
+        
 
 
 

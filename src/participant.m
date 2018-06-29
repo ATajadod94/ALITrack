@@ -6,6 +6,7 @@ classdef participant < iTrack
         EDF_File
     end
     methods
+        % constructors
         function obj = participant(use_edf, varargin)
             obj = obj@iTrack('edfs',use_edf);
             if ~use_edf % if use_edf is 0
@@ -60,10 +61,85 @@ classdef participant < iTrack
                 obj.TRIALS{i,1} = trial(obj, i ,varargin{:});
             end
         end
+        function set_base(obj, trials)
+            for trial = trials
+                obj.TRIALS{trial}.set_base
+            end
+        end
+        function set_extended(obj, trials)
+            for trial = trials
+                obj.TRIALS{trial}.set_extended
+            end
+        end
+        function set_eyelink(obj,trials)
+            for trial = trials
+                obj.TRIALS{trial}.set_eyelink_saccade
+            end
+        end
+        % output
+        function output = to_matrix(obj,varargin)
+           	p = inputParser;
+            p.addRequired('obj')
+            p.addParameter('trials', 1:obj.NUM_TRIALS, @(x) isvector(x))
+            p.addParameter('output', 'base', @(x) ischar(x) | isvector(x));
+            p.addParameter('fiename', obj.EDF_File, @(x) ischar(x))
+            p.parse(obj,varargin{:})
+            
+            trials = p.Results.trials;
+            fixation_count = {};
+            saccade_count = {};
+            fixation_locations = {};
+            saccade_locations= {};
+            index = {};
+            switch p.Results.output 
+                case "base"
+                    obj.set_base(trials)
+                case "extended"
+                    obj.set_extended(trials)
+                case "saccades"
+                    obj.set_extended(trials)
+                case "fixations"
+                    obj.set_extended(trials)
+                case "eyelink"
+                    obj.set_eyelink(trials)
+            end
+            switch p.Results.output 
+                case "eyelink"
+                    fixation_count{trial} =  obj.TRIALS{trial}.fixations.number;
+                    saccade_count{trial} = obj.TRIALS{trial}.eyelink.saccades.number;
+                otherwise
+                    for trialnum = trials
+                        index{trialnum} = trial;
+                        fixation_count{trialnum} =  obj.TRIALS{trialnum}.fixations.number;
+                        saccade_count{trialnum} = obj.TRIALS{trialnum}.saccades.number;
+                        fixation_locations{trialnum} =  [obj.TRIALS{trialnum}.fixations.start,obj.TRIALS{trial}.fixations.end];
+                        saccade_locations{trialnum} = [obj.TRIALS{trialnum}.saccades.start,obj.TRIALS{trial}.saccades.end];
+                    end
+            end
+            
+            output = [index', fixation_count',saccade_count'];
+
+        end
+        function to_csv(obj,filename, varargin)
+            p = inputParser;
+            p.addRequired('obj')
+            p.addRequired('filename')
+            p.addParameter('trials', 1:obj.NUM_TRIALS, @(x) isvector(x))
+            p.addParameter('output', 'base', @(x) ischar(x) | isvector(x));
+            p.parse(obj,filename, varargin{:})
+            
+            headers = {"INDEX", "FIXATION_COUNT", "SACCADE_COUNT"};
+            output = obj.to_matrix(varargin{:});
+            output = output(:,1:3);
+            %xlswrite(filename,headers);
+            xlswrite(filename,output);
+ 
+        end
+        % not organized 
         function requested_trial = gettrial(obj, trial_number,varargin)
             %Returns the requested trial number as a trial object. If given
             %a start_event and end_event, it will accordingly bound the
-            %data
+            %datasize
             %% Parsing Arguments
             p = inputParser;
             addRequired(p, 'obj')
@@ -102,12 +178,21 @@ classdef participant < iTrack
                     [varargout{1:nargout}] = builtin('subsref',obj,S);
                 elseif ismember(S.subs,objfields)
                     [varargout{1:nargout}]  = obj.subsref@iTrack(S);
-                else
-                    a = 2;
-                    error('why are we here')
+                elseif ismember(S.subs, [methods('trial');properties('trial')])
+                    for i = 1:obj.NUM_TRIALS
+                        subsref(obj.TRIALS{i},S)
+                    end
                 end
             else
-                [varargout{1:nargout}]  = builtin('subsref',obj,S);
+                if ismember(S(1).subs,[methods('participant');properties('participant')])
+                    [varargout{1:nargout}] = builtin('subsref',obj,S);
+                elseif ismember(S(1).subs, [methods('trial');properties('trial')])
+                    for i = S(2).subs{:}
+                        subsref(obj.TRIALS{i},S(1))
+                    end
+                else
+                    [varargout{1:nargout}]  = builtin('subsref',obj,S);
+                end
             end
         end
         

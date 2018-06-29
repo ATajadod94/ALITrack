@@ -1,9 +1,9 @@
 %{
 To Do list : 
 1) Make all saccade variables the same dimensions
-2) Naming conventions (participant level vs trial level)
-3) confirm read_ias , take varaibles or default bhv?
 4) remove hits when removing roi
+5) need more setters 
+6) remove index from csv_output
 %} 
 classdef trial < handle
     % inherited from data. Sets, calculates and plots trial specific data
@@ -90,20 +90,6 @@ classdef trial < handle
             obj.rois.single = [];
             obj.rois.combined = [];
         end             
-        function set_trial_features(obj,varargin)
-            obj.number_of_fixation
-            obj.number_of_saccade
-            obj.duration_of_fixation
-            obj.duration_of_saccade
-            obj.location_of_fixation
-            obj.location_of_saccade
-            obj.amplitude_of_saccade
-            obj.deviation_of_duration_of_fixation
-            obj.deviation_of_duration_of_saccade
-            obj.get_polar
-            obj.get_issaccade
-            obj.get_isfixation
-        end
         
         %% Helper funcions
         function get_polar(obj)
@@ -179,20 +165,31 @@ classdef trial < handle
                     error ( 'Input must be a string or a number')
             end           
         end
+        %% Setters
+        function set_base(obj)
+            obj.fixation_base
+            obj.saccade_base
+        end
+        function set_extended(obj)
+            fixation_extended
+            saccade_extended
+        end
         %% Fixation methods 
-        function fixation_base()
-            number_of_fixation
-            duration_of_fixation
-            avarage_fixation_duration
-            max_fixation_duration
-            min_fixation_duration
+        function fixation_base(obj)
+            obj.number_of_fixation
+            obj.duration_of_fixation
+            obj.avarage_fixation_duration
+            obj.max_fixation_duration
+            obj.min_fixation_duration
+            obj.location_of_fixation
         end
         function fixation_extended(obj)
-            
+            obj.deviation_of_duration_of_fixation
         end
+        %base 
         function number_of_fixation(obj)
             % sets the number of fixations for the trial
-            trial_data = obj.parent.getdata(obj);
+            trial_data = get_itrack(obj);
             minimum_duration = 100;
             intrial_index = find(ismember(trial_data.Fixations.entime,obj.sample_time));
             if trial_data.Fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
@@ -220,10 +217,17 @@ classdef trial < handle
            %sets the max duration of all fixations
            [obj.fixations.max_duration, obj.fixations.max_duration_index] = max(obj.fixations.duration);
         end
-        function min_fixation_duration(obj) 
+        function min_fixation_duration(obj)
             %sets the min duration of all fixations
-           [obj.fixations.min_duration, obj.fixations.min_duration_index] = min(obj.fixations.duration);
+            [obj.fixations.min_duration, obj.fixations.min_duration_index] = min(obj.fixations.duration);
         end
+        function location_of_fixation(obj)
+            % sets the location of fixation for the trial
+            trial_data = get_itrack(obj);
+            obj.fixations.average_gazex = trial_data.Fixations.gavx(obj.fixations.rawindex);
+            obj.fixations.average_gazey = trial_data.Fixations.gavy(obj.fixations.rawindex);
+        end
+        %extended
         function deviation_of_duration_of_fixation(obj)
             % sets the deviation of saccades  duration for the trial
             if isfield(obj.fixations, 'duration')
@@ -231,13 +235,8 @@ classdef trial < handle
             end
             obj.fixations.duration_standard_deviation = std(double(obj.fixations.duration));
             obj.fixations.duration_zscore = util.zscore(obj.fixations.duration);           
-        end       
-        function location_of_fixation(obj)
-            % sets the location of fixation for the trial
-            trial_data = obj.parent.getdata(obj);
-            obj.fixations.average_gazex = trial_data.Fixations.gavx(obj.fixations.rawindex);
-            obj.fixations.average_gazey = trial_data.Fixations.gavy(obj.fixations.rawindex);
-        end       
+        end
+        %functional
         function get_isfixation(obj)
             % sets the issaccade vector.  Also creates fixation_start,
             % num_samples and sample_times
@@ -246,10 +245,21 @@ classdef trial < handle
             obj.fixations.isfixation(col) = 1;
         end       
         %% Saccade methods
+        function saccade_base(obj)
+            obj.number_of_saccade
+            obj.duration_of_saccade
+            obj.amplitude_of_saccade
+            obj.deviation_of_amplitude_of_saccade
+            obj.average_saccade_amplitude
+        end
+        function saccade_extended(obj)
+            obj.deviation_of_duration_of_saccade
+        end
+        %base
         function number_of_saccade(obj)
             % sets the number of saccades for the trial
             minimum_duration = 100;
-            trial_data = obj.parent.getdata(obj);
+            trial_data = get_itrack(obj);
             intrial_index = find(ismember(double(trial_data.Saccades.entime),obj.sample_time));
             if trial_data.Saccades.entime(intrial_index(1))- obj.start_time  <  minimum_duration
                 intrial_index = intrial_index(2:end);
@@ -267,7 +277,7 @@ classdef trial < handle
         end   
         function amplitude_of_saccade(obj)
             % sets the amplitude of saccades for the trial
-            trial_data = obj.parent.getdata(obj);
+            trial_data = get_itrack(obj);
             obj.saccades.amplitude =  trial_data.Saccades.ampl(obj.saccades.rawindex);
         end
         function deviation_of_amplitude_of_saccade(obj)
@@ -278,6 +288,15 @@ classdef trial < handle
             % sets the avereage amplitude of saccadess
             obj.saccades.average_amplitude =  mean(obj.saccades.amplitude);
         end
+        function location_of_saccade(obj)
+            % sets the location of saccades points  for the trial
+            trial_data = get_itrack(obj);
+            obj.saccades.start_gazex = trial_data.Saccades.gstx(obj.saccades.rawindex);
+            obj.saccades.start_gazey = trial_data.Saccades.gsty(obj.saccades.rawindex);
+            obj.saccades.end_gazex = trial_data.Saccades.genx(obj.saccades.rawindex);
+            obj.saccades.end_gazey = trial_data.Saccades.geny(obj.saccades.rawindex);
+        end
+        %extended 
         function deviation_of_duration_of_saccade(obj)
             % Sets the deviation of duration for saccades for the
             % saccades
@@ -286,17 +305,10 @@ classdef trial < handle
             end
             obj.saccades.duration_standard_deviation = std(double(obj.saccades.duration));
             obj.saccades.duration_variation = util.zscore(double(obj.saccades.duration));
-        end        
-        function location_of_saccade(obj)
-            % sets the location of saccades points  for the trial
-            trial_data = obj.parent.getdata(obj);
-            obj.saccades.start_gazex = trial_data.Saccades.gstx(obj.saccades.rawindex);
-            obj.saccades.start_gazey = trial_data.Saccades.gsty(obj.saccades.rawindex);
-            obj.saccades.end_gazex = trial_data.Saccades.genx(obj.saccades.rawindex);
-            obj.saccades.end_gazey = trial_data.Saccades.geny(obj.saccades.rawindex);
-        end            
+        end    
+        %functional 
         function set_eyelink_saccade(obj, thereshold)
-            %% detects saccades based on existing eyelink defenition 
+            %% detects saccades based on existing  defenition 
             obj.saccades.eye_link = struct();
             % intializing the eyelink theresholds
             if ~isstruct(thereshold)
@@ -550,7 +562,7 @@ classdef trial < handle
            end
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
         end      
-        % Extended methods
+        %% Extended methods
         function recurrence(obj, varargin)            
             %% Fixed Grid method
             obj.calcHits('rois', {'grid_50'})
@@ -585,7 +597,7 @@ classdef trial < handle
                 looked_regions =looked_regions(diff(looked_regions) ~= 0);
                 get_ent(number_of_regions, looked_regions)
         end
-        % Plotting methods
+        %% Plotting methods
         function plot_angular_velocity(obj)
             figure
             hold on;
