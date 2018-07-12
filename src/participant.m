@@ -73,12 +73,12 @@ classdef participant < iTrack
         end
         function set_eyelink(obj,trials)
             for trial = trials
-                obj.TRIALS{trial}.set_eyelink_saccade
+                obj.TRIALS{trial}.set_eyelink_saccade(1)
             end
         end
         % output
         function output = to_matrix(obj,varargin)
-           	p = inputParser;
+            p = inputParser;
             p.addRequired('obj')
             p.addParameter('trials', 1:obj.NUM_TRIALS, @(x) isvector(x))
             p.addParameter('output', 'base', @(x) ischar(x) | isvector(x));
@@ -91,7 +91,7 @@ classdef participant < iTrack
             fixation_locations = {};
             saccade_locations= {};
             index = {};
-            switch p.Results.output 
+            switch p.Results.output
                 case "base"
                     obj.set_base(trials)
                 case "extended"
@@ -103,10 +103,13 @@ classdef participant < iTrack
                 case "eyelink"
                     obj.set_eyelink(trials)
             end
-            switch p.Results.output 
+            switch p.Results.output
                 case "eyelink"
-                    fixation_count{trial} =  obj.TRIALS{trial}.fixations.number;
-                    saccade_count{trial} = obj.TRIALS{trial}.eyelink.saccades.number;
+                    for trialnum = trials    
+                        index{trialnum} = trialnum;
+                        fixation_count{trialnum} =  obj.TRIALS{trialnum}.fixations.number;
+                        saccade_count{trialnum}  = obj.TRIALS{trialnum}.saccades.eye_link.num_saccades;
+                    end
                 otherwise
                     for trialnum = trials
                         index{trialnum} = trialnum;
@@ -118,7 +121,7 @@ classdef participant < iTrack
             end
             
             output = [index', fixation_count',saccade_count'];
-
+         
         end
         function to_csv(obj,filename, varargin)
             p = inputParser;
@@ -133,9 +136,9 @@ classdef participant < iTrack
             output = output(:,1:3);
             %xlswrite(filename,headers);
             xlswrite(filename,output);
- 
+            
         end
-        % not organized 
+        % not organized
         function requested_trial = gettrial(obj, trial_number,varargin)
             %Returns the requested trial number as a trial object. If given
             %a start_event and end_event, it will accordingly bound the

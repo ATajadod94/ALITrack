@@ -19,14 +19,14 @@ myparticipant.set_trials()
 % base case
 myparticipant.to_csv(Output_file)
 
-myparticipant.to_csv(Output_file, 'output','eye_link')
+myparticipant.to_csv(Output_file, 'output','eyelink')
 
 
 %Specifying Trials
 
 myparticipant.to_csv(Output_file, 'trials', 1:10)
 
-myparticipant.to_csv(Output_file, 'trials', 1:10,'output','eye_link')
+myparticipant.to_csv(Output_file, 'trials', 1:10,'output','eyelink')
 
 %Specifying Output
 

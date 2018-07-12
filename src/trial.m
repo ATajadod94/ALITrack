@@ -321,10 +321,11 @@ classdef trial < handle
                  
             [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
             saccade_detector = find(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
-            obj.saccades.eye_link.start_idx = saccade_detector;
-            obj.saccades.eye_link.start_time = [0, obj.get_time('',obj.saccades.eye_link.start_idx)];
-            tmp = find(diff(obj.saccades.eye_link.start_time) > 20)+1;
+            obj.saccades.eye_link.marked_saccade = saccade_detector;
+            obj.saccades.eye_link.start_time = [0, obj.get_time('',obj.saccades.eye_link.marked_saccade)];
+            tmp = find(diff(obj.saccades.eye_link.start_time) > thereshold.saccade_duration)+1;
             obj.saccades.eye_link.start_time  = obj.saccades.eye_link.start_time(tmp);
+            obj.saccades.eye_link.num_saccades = length(tmp);
             obj.saccades.eye_link.defenition = thereshold;              
         end     
         function get_issaccade(obj)
