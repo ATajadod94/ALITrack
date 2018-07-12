@@ -81,6 +81,10 @@ classdef util < handle
             entropy_total = column_entropy_totals + row_entropy_totals - cellenttotal;
             entropytotal = 1-( entropy_total /correction);
         end
+        
+        function bool = inbetween(value, lower, bigger)
+           bool = value <= bigger & value >= lower;
+        end
     end
     
 end

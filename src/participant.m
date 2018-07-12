@@ -107,7 +107,7 @@ classdef participant < iTrack
                 case "eyelink"
                     for trialnum = trials    
                         index{trialnum} = trialnum;
-                        fixation_count{trialnum} =  obj.TRIALS{trialnum}.fixations.number;
+                        fixation_count{trialnum} =  obj.TRIALS{trialnum}.fixations.eye_link.num_fixations;
                         saccade_count{trialnum}  = obj.TRIALS{trialnum}.saccades.eye_link.num_saccades;
                     end
                 otherwise

@@ -4,6 +4,7 @@ To Do list :
 4) remove hits when removing roi
 5) need more setters 
 6) remove index from csv_output
+7) remove util, use class functions 
 %} 
 classdef trial < handle
     % inherited from data. Sets, calculates and plots trial specific data
@@ -98,7 +99,7 @@ classdef trial < handle
             [obj.theta, obj.rho] = cart2pol(obj.x, obj.y);
         end        
         function time = get_time(obj,varargin)
-            % assumes edf time values are microsecond 
+            % assumes edf time values are ms 
             % returns trial indexed time values 
             try 
                 idx = varargin{2};
@@ -111,9 +112,9 @@ classdef trial < handle
             else
                 switch(varargin{1})
                     case 'ms'
-                        time = double(obj.trial_time(idx)) / 1000;
+                        time = double(obj.trial_time(idx));
                     case 's'
-                        time = double(obj.trial_time(idx)) / 1000000;                 
+                        time = double(obj.trial_time(idx)) / 1000;                 
                     otherwise
                         disp('time_unit identifier not found, or left blank, default units used')
                         time = double(obj.trial_time(idx));  
@@ -318,14 +319,38 @@ classdef trial < handle
                 thereshold.degree = 0.5; % deg
                 thereshold.saccade_duration = 20; %ms
             end
-                 
+                
+            % setting saccades
             [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
-            saccade_detector = find(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
-            obj.saccades.eye_link.marked_saccade = saccade_detector;
-            obj.saccades.eye_link.start_time = [0, obj.get_time('',obj.saccades.eye_link.marked_saccade)];
-            tmp = find(diff(obj.saccades.eye_link.start_time) > thereshold.saccade_duration)+1;
-            obj.saccades.eye_link.start_time  = obj.saccades.eye_link.start_time(tmp);
+            saccade_index = double(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
+            saccade_index = mark_endingpoints(obj.get_time,saccade_index,thereshold.saccade_duration); %maybe use a diff thereshold here?
+            saccade_detector = find(saccade_index);
+            starttime = [0, obj.get_time('ms',saccade_detector)]; %#ok<FNDSB>
+            tmp = find(diff(starttime) > thereshold.saccade_duration)+1;
+            obj.saccades.eye_link.start_time  = starttime(tmp);
+            tmp = tmp(2:end); % trial cant start with a saccade ending 
+            obj.saccades.eye_link.end_time  = starttime(tmp(1:end)-1);
+            obj.saccades.eye_link.end_time = obj.saccades.eye_link.end_time + thereshold.saccade_duration; 
+            if length(obj.saccades.eye_link.end_time) < length(obj.saccades.eye_link.start_time)
+                obj.saccades.eye_link.end_time = [obj.saccades.eye_link.end_time, obj.saccades.eye_link.start_time(end)+ thereshold.saccade_duration];
+            end
             obj.saccades.eye_link.num_saccades = length(tmp);
+            obj.saccades.eye_link.marked_saccade = mark_fixations(obj.get_time,obj.saccades.eye_link.start_time,obj.saccades.eye_link.end_time);
+            
+            
+            % setting fixations
+            state_changes =  obj.get_time('ms',find(diff(obj.saccades.eye_link.marked_saccade == 0))); %#ok<FNDSB> 
+            defined_states = saccade_index(~isnan(saccade_index));
+            initial_state = defined_states(1);          
+            if  initial_state == 0 %start with fixation
+                fixation_starts = 1:2:length(state_changes);
+            elseif initial_state == 1 % starts with saccade
+               fixation_starts = 2:2:length(state_changes);
+            end
+            obj.fixations.eye_link.start_time = state_changes(fixation_starts);
+            obj.fixations.eye_link.end_time = setdiff(state_changes, obj.fixations.eye_link.start_time);
+            obj.fixations.eye_link.num_fixations = length( obj.fixations.eye_link.start_time);
+            
             obj.saccades.eye_link.defenition = thereshold;              
         end     
         function get_issaccade(obj)
@@ -657,3 +682,44 @@ classdef trial < handle
         fclose(fileID);       
         roi_table = table(dataArray{1:end-1});
  end 
+ 
+ function samplemarker = mark_fixations(sample_time,saccade_start,saccade_end)
+    samplemarker = zeros(length(sample_time),1);
+    sample_index = 0;
+    for sample = sample_time , sample_index = sample_index+1;
+        if find(util.inbetween(sample, saccade_start, saccade_end)) 
+            samplemarker(sample_index) = 1;
+        end
+    end
+ 
+ end
+ 
+ function samplemarker = mark_endingpoints(sample_time,samplemarker, thereshold)
+    inital_state = samplemarker(1);
+    state_change = find(samplemarker ~= inital_state, 1); 
+    if sample_time(state_change) - sample_time(1) < thereshold
+        samplemarker(1:state_change) = NaN;
+    end
+    
+    final_state = samplemarker(end);
+    state_change = find(samplemarker ~= final_state,1, 'last'); 
+    if abs(sample_time(state_change) - sample_time(end)) < thereshold
+        samplemarker(1:state_change) = NaN;
+    end
+ end
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
