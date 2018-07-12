@@ -109,11 +109,11 @@ classdef participant < iTrack
                     saccade_count{trial} = obj.TRIALS{trial}.eyelink.saccades.number;
                 otherwise
                     for trialnum = trials
-                        index{trialnum} = trial;
+                        index{trialnum} = trialnum;
                         fixation_count{trialnum} =  obj.TRIALS{trialnum}.fixations.number;
                         saccade_count{trialnum} = obj.TRIALS{trialnum}.saccades.number;
-                        fixation_locations{trialnum} =  [obj.TRIALS{trialnum}.fixations.start,obj.TRIALS{trial}.fixations.end];
-                        saccade_locations{trialnum} = [obj.TRIALS{trialnum}.saccades.start,obj.TRIALS{trial}.saccades.end];
+                        fixation_locations{trialnum} =  [obj.TRIALS{trialnum}.fixations.start,obj.TRIALS{trialnum}.fixations.end];
+                        saccade_locations{trialnum} = [obj.TRIALS{trialnum}.saccades.start,obj.TRIALS{trialnum}.saccades.end];
                     end
             end
             
