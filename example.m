@@ -2,6 +2,8 @@ clear;
 close all;
 close all
 
+%% Todo : add lines for setting path
+
 %% Example for no-edf construction  
 %{
 load('/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_noedf.mat')
@@ -20,10 +22,12 @@ myparticipant = participant(1,p_folder, 'samples', true);
 % Elapsed time is 261.141535 seconds.
 %}
 
+% trial = gettrial(myparticipant,1,"start_event","Study_display", "end_event", "Blank_display");
+
 
 p_folder = '../../Data/ALItracker_Data/sver308/sver308.edf';
 myparticipant = participant(p_folder, 'samples', true);
-trial = gettrial(myparticipant,1,"start_event","Study_display", "end_event", "Blank_display");
+myparticipant.set_trials('start_event',"stimDisplay",'end_event', "stimDuration");
 
 trial.number_of_fixation
 trial.duration_of_fixation

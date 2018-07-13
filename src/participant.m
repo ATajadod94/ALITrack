@@ -56,10 +56,14 @@ classdef participant < iTrack
             p = inputParser;
             p.addRequired('obj')
             p.addParameter('trial_number', 1:obj.NUM_TRIALS, @(x) isvector(x));
-            p.parse(obj, varargin{:})
-            
+            addOptional(p, 'start_event',' ')
+            addOptional(p, 'end_event',' ')
+            %% TODO: unify this function and requested_trial
+            p.parse(obj, varargin{:});
+            start_event = p.Results.start_event;
+            end_event = p.Results.end_event;
             for i = p.Results.trial_number
-                obj.TRIALS{i,1} = trial(obj, i ,varargin{:});
+                obj.TRIALS{i,1} = trial(obj, i ,[start_event;end_event]);
             end
         end
         function set_base(obj, trials)
@@ -146,14 +150,14 @@ classdef participant < iTrack
             p = inputParser;
             addRequired(p, 'obj')
             addRequired(p, 'trial_number')
-            addOptional(p, 'start_event','')
-            addOptional(p, 'end_event','')            
+            addOptional(p, 'start_event',' ')
+            addOptional(p, 'end_event',' ')            
             addOptional(p, 'roi','')          
             % TODO : add spatial ROI on gettrial 
-            p.parse(p,obj,trial_number, varargin{:});
+            p.parse(obj,trial_number, varargin{:});
             start_event = p.Results.start_event;
             end_event = p.Results.end_event;
-            requested_trial = trial(obj, trial_number,[start_event,end_event]);
+            requested_trial = trial(obj, trial_number,[start_event;end_event]);
         end
         function plot_trial(obj,trial_no)
             x = obj.data{1,1}(trial_no).gx;
@@ -194,9 +198,7 @@ classdef participant < iTrack
                     [varargout{1:nargout}]  = builtin('subsref',obj,S);
                 end
             end
-        end
-        
-        
+        end    
     end
 end
 

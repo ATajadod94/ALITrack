@@ -63,7 +63,7 @@ classdef trial < handle
             p = inputParser;
             p.addRequired('parent', @(parent) isa(parent, 'participant'))
             p.addRequired('trial_no',  @(x) isvector(x));
-            p.addOptional('temporal_roi', [' ',' '] , @checktemporal)
+            p.addOptional('temporal_roi', [' ';' '] , @checktemporal)
             p.parse(parent, trial_no, varargin{:})
             start_event = p.Results.temporal_roi(1);
             end_event = p.Results.temporal_roi(2);       
@@ -182,16 +182,19 @@ classdef trial < handle
             trial_data = get_itrack(obj);
             minimum_duration = 100;
             intrial_index = find(ismember(trial_data.Fixations.entime,obj.sample_time));
-            if trial_data.Fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
-                intrial_index = intrial_index(2:end);
+            col = [];
+            if ~isempty(intrial_index)
+                if trial_data.Fixations.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
+                    intrial_index = intrial_index(2:end);
+                end
             end
             obj.fixations.rawindex = intrial_index;
             obj.fixations.number = length(intrial_index);
             [~,col,~] =  find(obj.sample_time == trial_data.Fixations.sttime(intrial_index));
+            
             obj.fixations.start = obj.trial_time(col);
             [~,col,~] =  find(obj.sample_time == trial_data.Fixations.entime(intrial_index));
             obj.fixations.end = obj.trial_time(col);
-            
             if length(obj.fixations.start) < length(obj.fixations.end)
                obj.fixations.start = [0 ,  obj.fixations.start];
             end
@@ -251,8 +254,10 @@ classdef trial < handle
             minimum_duration = 100;
             trial_data = get_itrack(obj);
             intrial_index = find(ismember(double(trial_data.Saccades.entime),obj.sample_time));
-            if trial_data.Saccades.entime(intrial_index(1))- obj.start_time  <  minimum_duration
-                intrial_index = intrial_index(2:end);
+            if ~isempty(intrial_index)
+                if trial_data.Saccades.entime(intrial_index(1))- obj.start_time  <  minimum_duration
+                    intrial_index = intrial_index(2:end);
+                end
             end
             obj.saccades.rawindex = intrial_index;
             obj.saccades.number = length(intrial_index);
@@ -263,6 +268,7 @@ classdef trial < handle
         end       
         function duration_of_saccade(obj)
             % sets the duraiton of saccades for the trial
+            disp(obj.trial_no)
             obj.saccades.duration = obj.saccades.end - obj.saccades.start ;
         end   
         function amplitude_of_saccade(obj)
@@ -701,9 +707,14 @@ classdef trial < handle
 
 %% HANDLING ARGUMENTS 
 function accept = checktemporal(inputs)
+    numiunputs = length(inputs);
     accept = 1;
-    for input = inputs
-        if ~ ( isstring(input) || isnumeric(input))
+    if (numiunputs > 3 || numiunputs == 0)
+        assert( ' You can only give one or two values for the temporal inputs ')
+    end
+    for input_idx = 1:numiunputs
+        input = inputs(input_idx);
+        if ~ ( isstring(input) || isnumeric(input) || input == ' ')
             accept = 0;
         end
     end
