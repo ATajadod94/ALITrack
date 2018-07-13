@@ -1,5 +1,5 @@
 classdef util < handle
-    % inherited from data. Sets, calculates and plots trial specific data
+    % a utility class
     methods(Static)
         function score_array = zscore(data)
             if ~isa(data,'double')

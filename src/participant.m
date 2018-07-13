@@ -8,7 +8,7 @@ classdef participant < iTrack
     methods
         % constructors
         function obj = participant(use_edf, varargin)
-            obj = obj@iTrack('edfs',use_edf);
+            obj = obj@iTrack('edfs',use_edf,varargin{:});
             if ~use_edf % if use_edf is 0
                 p = inputParser;
                 p.addRequired('use_edf', @(x) x==0)
@@ -130,9 +130,9 @@ classdef participant < iTrack
             
             headers = {'TRIAL_NUMBER'; 'FIXATION_COUNT'; 'SACCADE_COUNT'};
             output = obj.to_matrix(varargin{:});
-            output_table = table(output(:,1),output(2:end));                %first column will always be trial number
-            output_table.Properties.VariableNames
-            tablewrite(output_table,filename);
+            output_table = array2table(output);     
+            output_table.Properties.VariableNames = headers;
+            writetable(output_table,filename);
             %xlswrite(filename,output);
             
         end
