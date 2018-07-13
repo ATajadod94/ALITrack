@@ -146,16 +146,14 @@ classdef participant < iTrack
             p = inputParser;
             addRequired(p, 'obj')
             addRequired(p, 'trial_number')
-            
+            addOptional(p, 'start_event','')
+            addOptional(p, 'end_event','')            
+            addOptional(p, 'roi','')          
+            % TODO : add spatial ROI on gettrial 
             p.parse(p,obj,trial_number, varargin{:});
             start_event = p.Results.start_event;
             end_event = p.Results.end_event;
-            %% Finding start/end time
-            start_time = extract_event(obj  ,'search',start_event,'time',true,'behfield',true);
-            start_time = start_time.data{1, 1}(trial_number).beh.(start_event);
-            end_time = extract_event(obj  ,'search', end_event,'time',true,'behfield',true);
-            end_time = end_time.data{1, 1}(trial_number).beh.(end_event);
-            requested_trial = trial(obj, trial_number,[start_time,end_time]);
+            requested_trial = trial(obj, trial_number,[start_event,end_event]);
         end
         function plot_trial(obj,trial_no)
             x = obj.data{1,1}(trial_no).gx;

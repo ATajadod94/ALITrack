@@ -63,11 +63,10 @@ classdef trial < handle
             p = inputParser;
             p.addRequired('parent', @(parent) isa(parent, 'participant'))
             p.addRequired('trial_no',  @(x) isvector(x));
-            p.addOptional('start_event', '' , @(x) ischar(x) | isnum(x))
-            p.addOptional('end_event', '', @(x) ischar(x) | isnum(x))
-            p.addOptional('duration', 4000 , @isscalar)
+            p.addOptional('temporal_roi', [' ',' '] , @checktemporal)
             p.parse(parent, trial_no, varargin{:})
-            
+            start_event = p.Results.temporal_roi(1);
+            end_event = p.Results.temporal_roi(2);       
             % main properties  
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
@@ -76,7 +75,7 @@ classdef trial < handle
             trial_data = obj.get_itrack;  
             % setting Temporal ROI's if specified
             [obj.start_time, obj.end_time ,full_trial_time] = ...
-                    obj.get_timeindex(p.Results.start_event, p.Results.end_event);            
+                    obj.get_timeindex(start_event, end_event);            
             obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
             
             if isfield('dims',obj.parent.screen)
@@ -126,43 +125,32 @@ classdef trial < handle
             data = obj.parent.data{1,1}(obj.trial_no);
         end
         function time = extract_event(obj,event)
+              % Todo: deal with name inherit, call to super? different name?
               searchfor = regexprep(event,'[!@#$%^&()?"*+='',./~` ]','');
               idx = ~cellfun(@isempty,regexp(obj.get_itrack.events.message,event));
-              time = obj.get_itrack.events.message(idx);
+              time = obj.get_itrack.events.time(idx);
         end
         function [first, last, full_trial_time]  = get_timeindex(obj,firstinput,lastinput)
              trial_data = obj.get_itrack;
              full_trial_time = 1 + 1000*(0:trial_data.numsamples-1) * 1/trial_data.sample_rate;
-             
-             switch firstinput             
-                case ''
+             % Todo:  handle durations
+             switch class(firstinput)         
+                case 'char' %empty
                     first = full_trial_time(1);
-                case ischar
-                    first = obj.extract_event(p.Results.start_event);
-                    if ~ lastinput
-                        first = obj.end_time + p.Results.duration;
-                    end
-                case isscalar
-                    first = p.Results.start_event;
-                    if ~ lastinput
-                        first = obj.end_time + p.Results.duration;
-                    end
+                case 'string'
+                    first = obj.extract_event(firstinput);
+                case 'numeric'
+                    first = firstinput;
                  otherwise
                      error ( 'Input must be a string or a number')
              end           
-            switch lastinput
-                case ''
+            switch class(lastinput)       
+                case 'char' %empty
                     last = full_trial_time(end);
-                case ischar
-                    last = obj.extract_event(p.Results.start_event);
-                    if ~ firstinput
-                        first = obj.end_time - p.Results.duration;
-                    end
-                case isscalar
+                case 'string'
+                    last = double(obj.extract_event(lastinput));
+                case 'numeric'
                     last = lastinput;
-                    if ~ firstinput
-                        first = obj.end_time - p.Results.duration;
-                    end
                 otherwise
                     error ( 'Input must be a string or a number')
             end           
@@ -665,7 +653,7 @@ classdef trial < handle
      end
  end
       
-
+%% FILE READERS
  function roi_table = read_ias(filename, startRow, endRow)
         % reads user_inputted ias masks
         % assumes  Format for each line of text:
@@ -684,6 +672,7 @@ classdef trial < handle
         roi_table = table(dataArray{1:end-1});
  end 
  
+%% MARKERS
  function samplemarker = mark_fixations(sample_time,saccade_start,saccade_end)
     samplemarker = zeros(length(sample_time),1);
     sample_index = 0;
@@ -709,10 +698,16 @@ classdef trial < handle
     end
  end
  
- 
- 
- 
- 
+
+%% HANDLING ARGUMENTS 
+function accept = checktemporal(inputs)
+    accept = 1;
+    for input = inputs
+        if ~ ( isstring(input) || isnumeric(input))
+            accept = 0;
+        end
+    end
+end
  
  
  
