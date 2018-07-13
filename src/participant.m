@@ -4,11 +4,12 @@ classdef participant < iTrack
         TRIALS % Collection of Trial objects
         NUM_TRIALS % number of trials for a given participant
         EDF_File
+        RAW % Raw data
     end
     methods
         % constructors
         function obj = participant(use_edf, varargin)
-            obj = obj@iTrack('edfs',use_edf,varargin{:});
+            obj = obj@iTrack(use_edf,varargin{:});
             if ~use_edf % if use_edf is 0
                 p = inputParser;
                 p.addRequired('use_edf', @(x) x==0)
@@ -19,9 +20,9 @@ classdef participant < iTrack
                 p.addParameter('events',@(x) iscell(x));
                 p.parse(use_edf,varargin{:})
                 
-                obj.num_trials = p.Results.num_trials;
+                obj.NUM_TRIALS = p.Results.num_trials;
                 % initlizing to itrack's data strcture
-                obj.raw = p.Results;
+                obj.RAW = p.Results;
                 obj.data = {};
                 obj.data{1} = struct();
                 obj.data{1}(obj.NUM_TRIALS).gx = [];

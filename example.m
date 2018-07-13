@@ -3,7 +3,7 @@ close all;
 
 %% Example for no-edf construction  
 %{
-load(('/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_noedf.mat')
+load('/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_noedf.mat')
 myparticipant = participant(0,'num_trials', 70, 'x', x, 'y' , y,'time',time,'events',events);
 trial.set_eyelink_saccade(1) %% 1 indicates using the default thereshold 
 %}
