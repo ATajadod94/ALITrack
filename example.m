@@ -1,5 +1,6 @@
 clear;
 close all;
+close all
 
 %% Example for no-edf construction  
 %{
