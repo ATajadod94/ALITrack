@@ -1,5 +1,6 @@
 %{
 To Do list : 
+1) Decide on what the outputs should look like
 1) Make all saccade variables the same dimensions
 4) remove hits when removing roi
 5) need more setters 

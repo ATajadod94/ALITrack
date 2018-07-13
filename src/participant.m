@@ -86,11 +86,8 @@ classdef participant < iTrack
             p.parse(obj,varargin{:})
             
             trials = p.Results.trials;
-            fixation_count = {};
-            saccade_count = {};
             fixation_locations = {};
             saccade_locations= {};
-            index = {};
             switch p.Results.output
                 case "base"
                     obj.set_base(trials)
@@ -106,17 +103,17 @@ classdef participant < iTrack
             switch p.Results.output
                 case "eyelink"
                     for trialnum = trials    
-                        index{trialnum} = trialnum;
-                        fixation_count{trialnum} =  obj.TRIALS{trialnum}.fixations.eye_link.num_fixations;
-                        saccade_count{trialnum}  = obj.TRIALS{trialnum}.saccades.eye_link.num_saccades;
+                        index(trialnum) = trialnum;
+                        fixation_count(trialnum) =  obj.TRIALS{trialnum}.fixations.eye_link.num_fixations;
+                        saccade_count(trialnum)  = obj.TRIALS{trialnum}.saccades.eye_link.num_saccades;
                     end
                 otherwise
                     for trialnum = trials
-                        index{trialnum} = trialnum;
-                        fixation_count{trialnum} =  obj.TRIALS{trialnum}.fixations.number;
-                        saccade_count{trialnum} = obj.TRIALS{trialnum}.saccades.number;
-                        fixation_locations{trialnum} =  [obj.TRIALS{trialnum}.fixations.start,obj.TRIALS{trialnum}.fixations.end];
-                        saccade_locations{trialnum} = [obj.TRIALS{trialnum}.saccades.start,obj.TRIALS{trialnum}.saccades.end];
+                        index(trialnum) = trialnum;
+                        fixation_count(trialnum) =  obj.TRIALS{trialnum}.fixations.number;
+                        saccade_count(trialnum) = obj.TRIALS{trialnum}.saccades.number;
+                        %fixation_locations(trialnum) =  [obj.TRIALS{trialnum}.fixations.start,obj.TRIALS{trialnum}.fixations.end];
+                        %saccade_locations(trialnum) = [obj.TRIALS{trialnum}.saccades.start,obj.TRIALS{trialnum}.saccades.end];
                     end
             end
             
@@ -131,11 +128,12 @@ classdef participant < iTrack
             p.addParameter('output', 'base', @(x) ischar(x) | isvector(x));
             p.parse(obj,filename, varargin{:})
             
-            headers = {"INDEX", "FIXATION_COUNT", "SACCADE_COUNT"};
+            headers = {'TRIAL_NUMBER'; 'FIXATION_COUNT'; 'SACCADE_COUNT'};
             output = obj.to_matrix(varargin{:});
-            output = output(:,1:3);
-            %xlswrite(filename,headers);
-            xlswrite(filename,output);
+            output_table = table(output(:,1),output(2:end));                %first column will always be trial number
+            output_table.Properties.VariableNames
+            tablewrite(output_table,filename);
+            %xlswrite(filename,output);
             
         end
         % not organized
@@ -202,3 +200,4 @@ classdef participant < iTrack
         
     end
 end
+

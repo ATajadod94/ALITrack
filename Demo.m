@@ -8,7 +8,7 @@
 % output : CSV fle duplication dataviewer tempelate 
 
 EDF_File = '../../Data/ALItracker_Data/aj031ro/aj031ro.edf';
-Output_file = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_output.xlsx';
+Output_file = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_output.csv';
 
 myparticipant = participant(EDF_File);
 myparticipant.set_trials() 
