@@ -21,7 +21,7 @@ myparticipant = participant(1,p_folder, 'samples', true);
 %}
 
 
-p_folder = '../../Data/ALItracker_Data/aj031ro/aj031ro.edf';
+p_folder = '../../Data/ALItracker_Data/sver308/sver308.edf';
 myparticipant = participant(p_folder, 'samples', true);
 trial = gettrial(myparticipant,1,"start_event","Study_display", "end_event", "Blank_display");
 
