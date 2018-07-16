@@ -94,20 +94,20 @@ classdef participant < iTrack
             fixation_locations = {};
             saccade_locations= {};
             switch p.Results.output
-                case "base"
+                case string(base)
                     obj.set_base(trials)
-                case "extended"
+                case string(extende)
                     obj.set_extended(trials)
-                case "saccades"
+                case string(saccades)
                     obj.set_extended(trials)
-                case "fixations"
+                case string(fixations)
                     obj.set_extended(trials)
-                case "eyelink"
+                case string(eyelink)
                     obj.set_eyelink(trials)
             end
             switch p.Results.output
-                case "eyelink"
-                    for trialnum = trials    
+                case string(eyelink)
+                    for trialnum = trials
                         index(trialnum) = trialnum;
                         fixation_count(trialnum) =  obj.TRIALS{trialnum}.fixations.eye_link.num_fixations;
                         saccade_count(trialnum)  = obj.TRIALS{trialnum}.saccades.eye_link.num_saccades;
@@ -123,7 +123,7 @@ classdef participant < iTrack
             end
             
             output = [index', fixation_count',saccade_count'];
-         
+            
         end
         function to_csv(obj,filename, varargin)
             p = inputParser;
@@ -135,7 +135,7 @@ classdef participant < iTrack
             
             headers = {'TRIAL_NUMBER'; 'FIXATION_COUNT'; 'SACCADE_COUNT'};
             output = obj.to_matrix(varargin{:});
-            output_table = array2table(output);     
+            output_table = array2table(output);
             output_table.Properties.VariableNames = headers;
             writetable(output_table,filename);
             %xlswrite(filename,output);
@@ -151,9 +151,9 @@ classdef participant < iTrack
             addRequired(p, 'obj')
             addRequired(p, 'trial_number')
             addOptional(p, 'start_event',' ')
-            addOptional(p, 'end_event',' ')            
-            addOptional(p, 'roi','')          
-            % TODO : add spatial ROI on gettrial 
+            addOptional(p, 'end_event',' ')
+            addOptional(p, 'roi','')
+            % TODO : add spatial ROI on gettrial
             p.parse(obj,trial_number, varargin{:});
             start_event = p.Results.start_event;
             end_event = p.Results.end_event;
@@ -198,7 +198,7 @@ classdef participant < iTrack
                     [varargout{1:nargout}]  = builtin('subsref',obj,S);
                 end
             end
-        end    
+        end
     end
 end
 
