@@ -1,6 +1,36 @@
 
+## Overview
+      To create a Matlab package that is able to create features for any given EDF file in a user friendly manner. 
+      Furthermore, it aims to provide certain utility-like feature detection functionalities for eye_movement 
+      data processed elsewhere.  The package builds on top of (inherits) iTrack by Jason Hubbard, as modified by
+      Dr.Liu.It aims to build on top of iTrack as well as improve certain existing functionalities.
+      iTrack itself is no longer being developed. 
+      
+Available features : 
+* Reading EDF data into Matlab
+* Getting all listed features for all or any selected trials in any given edf file in a few minutes (as of last test, it took 261 seconds to prepare all features for an experiment with 864 trials)
+* Total number of trials 
+* Raw data
+* Reading behavioural data
+* Basic trial features such as polar data, adaptable onset temporal values, blink removal
+* Basic Saccade features found in dataviewer (Eg: duration, amplitude, max/min of sensible feature, location)
+* Second order saccade features not found in dataviewer ( Eg: Zcsore, standard deviations, ...)
+* Basic fixation features found in dataviewer (see saccades)
+* Second order Fixation features not found in dataviwer ( see saccades)
+* Trial Specific spatial ROI's  (user defined masks, grids, rectangular, circular, elliptic masks)
+* Trial specific temporal ROI's ( Event based  or temporal based trial onset and offset)
+* ROI (temporal or spatial ) specific feature detection (EG: number of saccades in a specified period at a specified location)
+* Eyelink like saccade detection (EG: detecting saccades using the eyelinkmethod after cleaning the data)
 
-An object-oriented Matlab program for reading participant data, transcribing audio_files, and outputing features.
+In development features: these features have either not been tested yet or have not been fully implemented. However, they are expected to be fully functional in the immediate future and can be used as-is for the sample data used in development.
+
+* Entropy 1,2 measures
+* Recurrence measures 
+
+Next steps: 
+* Testing the package on more and more EDF data to encounter potential errors
+* (?)
+
 
 ## Getting Started
 
@@ -10,8 +40,7 @@ Check example.m for sample usage of the repo.
 ### Prerequisites
 
   Matlab
-  https://github.com/jashubbard/iTrack/tree/master/support/edfImport
-
+  https://github.com/ATajadod94/iTrack
 ```
 Give examples
 ```
@@ -65,6 +94,9 @@ trial.deviation_of_duration_of_fixation
 trial.deviation_of_duration_of_saccade
 trial.regionsofinterest
 
+## Naming Conventions 
+
+1. Participant level properties are upper case
 
 
 ## Contributing

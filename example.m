@@ -1,37 +1,60 @@
-%% Description 
-% Author : Alireza Tajadod 
-% Input : Data : Behavioural EDF Data , Audio : Corresponding audio file 
-% Output : 
 clear;
 close all;
 
-%using Participant Class
-%p_folder= '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/2003';
-%myparticipant = participant(2003, p_folder);
+%% Todo : add lines for setting path
 
-p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALITracker_Data/aj031ro/aj031ro.edf';
+%% Example for no-edf construction  
+%{
+load('/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_noedf.mat')
+myparticipant = participant(0,'num_trials', 70, 'x', x, 'y' , y,'time',time,'events',events);
+trial.set_eyelink_saccade(1) %% 1 indicates using the default thereshold 
+%}
+
+
+%% Available edf data for testing 
+%paths are relative to wd of the example script
+
+%{
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
+myparticipant = participant(1,p_folder, 'samples', true);
+%myparticipant.set_trial_features('all','start_event','stimDisplay','end_event', 'stimDuration') % change to strings 
+% Elapsed time is 261.141535 seconds.
+%}
+
+% trial = gettrial(myparticipant,1,"start_event","Study_display", "end_event", "Blank_display");
+
+
+p_folder = '../../Data/ALItracker_Data/sver308/sver308.edf';
 myparticipant = participant(p_folder, 'samples', true);
-myparticipant.set_trial_features(1:70,'start_event',"Study_display", 'end_event', "Study_timer")
+myparticipant.set_trials('start_event',string('stimDisplay'),'end_event', string('stimDuration'));
+% TODO : fix the saccade and fixation cut off , universalize the funciton
+% written to use for eyelink
 
-
-
-trial = myparticipant.gettrial(1);
-trial.animate()
-%using trial class directly
-trial = gettrial(myparticipant,1);
 trial.number_of_fixation
-trial.number_of_saccade
 trial.duration_of_fixation
-trial.duration_of_saccade
-trial.location_of_fixation
-trial.amplitude_of_saccade
+trial.avarage_fixation_duration
+trial.max_fixation_duration
+trial.min_fixation_duration
 trial.deviation_of_duration_of_fixation
+trial.location_of_fixation
+trial.get_isfixation
+
+trial.number_of_saccade
+trial.duration_of_saccade
 trial.deviation_of_duration_of_saccade
-trial.regionsofinterest
+trial.amplitude_of_saccade
+trial.deviation_of_amplitude_of_saccade
+trial.average_saccade_amplitude
+trial.location_of_saccade
+trial.get_issaccade
 
+trial.makeROIs(ones(4,1), 'shape', 'file' ,'fromfile', '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/M102.jpg.ias','clear',1);
+trial.entropy({"1","2","3","4"})
 
+trial.set_grid('default')
+trial.animate()
 
-condition(myparticipant, @fixmlt_importer);
+trial.set_eyelink_saccade(1) %% 1 indicates using the default thereshold 
 
 %windowtype :{durationofword,before,after}
 %followingindex : {how long}
