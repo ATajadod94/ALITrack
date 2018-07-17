@@ -34,8 +34,12 @@ classdef iTrack  < handle
                     parse(p,varargin{2:end});
 
                 else %this is if you say z = iTrack('edfs','edfname.edf')
-                    parse(p,varargin{:});
-                    edfs = p.Results.edfs;
+                    try
+                        parse(p,varargin{:});
+                        edfs = p.Results.edfs;
+                    catch
+                        error(' Can not find an edf in the specified location (basic usage demo)')
+                    end
                 end
                 
                 obj.subject_var = p.Results.subject_var;

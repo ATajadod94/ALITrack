@@ -26,7 +26,7 @@ myparticipant = participant(1,p_folder, 'samples', true);
 
 p_folder = '../../Data/ALItracker_Data/sver308/sver308.edf';
 myparticipant = participant(p_folder, 'samples', true);
-myparticipant.set_trials('start_event',string('stimDisplay'),'end_event', string('stimDuration'_);
+myparticipant.set_trials('start_event',string('stimDisplay'),'end_event', string('stimDuration'));
 % TODO : fix the saccade and fixation cut off , universalize the funciton
 % written to use for eyelink
 

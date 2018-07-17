@@ -5,12 +5,24 @@ classdef participanttest < matlab.unittest.TestCase
         
         %% Test Function
         function test_loadingraw(testCase)      
-            %% Exercise function under test
-            p_folder = '../../Data/ALItracker_Data/sver308/sver308.edf';
-            actSolution = participant('testdata/aj031ro.edf');
+            %% This function tests to ensure that the raw data can be 
+            % correctly loaded. In this way, it is testing Itrack.
+            p_folder = 'testdata/aj031ro.edf';
+            actSolution = participant(p_folder);
             
-            %% Verify using test qualification
-            testCase.verifyInstanceOf(actSolution,'participant')
+            %% Check load completed 
+            testCase.assertClass(actSolution, 'participant') 
         end
+                %% Test Function
+        function test_basefunctions(testCase)      
+            %% This function tests to ensure that the raw data can be 
+            % correctly loaded. In this way, it is testing Itrack.
+            p_folder = 'testdata/aj031ro.edf';
+            actSolution = participant(p_folder);
+            
+            %% Check load completed 
+            testCase.assertClass(actSolution, 'participant') 
+        end
+        
     end
 end
