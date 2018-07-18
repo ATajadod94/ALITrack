@@ -1,8 +1,8 @@
 %% Loading an EDF file into Matlab
 
 
-p_folder = 'testdata/aj031ro.edf'; % step 1 : Link to the edf file 
-myparticipant = partiparticipantcpant(p_folder); % step 2 : Create your participant
+p_folder = 'testdata/raw/aj031ro.edf'; % step 1 : Link to the edf file 
+myparticipant = participant(p_folder); % step 2 : Create your participant
 
 
 %{

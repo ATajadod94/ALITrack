@@ -11,7 +11,7 @@ EDF_File = '../../../Data/ALItracker_Data/aj031ro/aj031ro.edf';
 Output_file = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sample_output.csv';
 
 myparticipant = participant(EDF_File);
-myparticipant.set_trials() 
+myparticipant.set_trials();
 % feel free to explore the created myparticipant object at this stage
 
 
