@@ -161,8 +161,8 @@ classdef trial < handle
             obj.saccade_base
         end
         function set_extended(obj)
-            fixation_extended
-            saccade_extended
+            obj.fixation_extended
+            obj.saccade_extended
         end
         %% Fixation methods 
         function fixation_base(obj)

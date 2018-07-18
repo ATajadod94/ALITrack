@@ -30,12 +30,12 @@ classdef participanttest < matlab.unittest.TestCase
         function test_extendedctions(basetestCase)
             %% This function tests to ensure that the raw data can be
             % correctly loaded. In this way, it is testing Itrack.
-            test = 'testdata/basic/aj031ro.mat';
-            actual = 'testdata/basic/aj031ro_actual.mat';
+            test = 'testdata/extended/aj031ro.mat';
+            actual = 'testdata/extended/aj031ro_actual.mat';
             myparticipant = basefunctions(test);
             %% Check load completed
             myparticipant_actual = loadraw(actual);
-            basetestCase.verifyEqual(myparticipant.TRIALS{:},myparticipant_actual.TRIALS{:} )
+            basetestCase.verifyEqual(myparticipant.TRIAL,myparticipant_actual.TRIALS)
         end
         
         
@@ -44,7 +44,7 @@ end
 function myparticipant = loadraw(matfile)
     %% assumes matfile contains a raw loaded participant object
     % returns the given participant object
-    load(matfile);    
+    myparticipant = load(matfile, 'myparticipant');    
 end
 function myparticipant = basefunctions(matfile)
 %% assumes matfile contains a raw loaded participant object
