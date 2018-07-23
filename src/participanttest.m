@@ -24,10 +24,15 @@ classdef participanttest < matlab.unittest.TestCase
             myparticipant = basefunctions(test);
             %% Check load completed
             myparticipant_actual = loadraw(actual);
-            basetestCase.verifyEqual(myparticipant.TRIALS{:},myparticipant_actual.TRIALS{:} )
-        end
-        
-        function test_extendedctions(basetestCase)
+            for trial_number = 1:length(myparticipant.TRIALS)
+                basetestCase.verifyEqual(myparticipant.TRIALS{trial_number}.saccades,...
+                    myparticipant_actual.TRIALS{trial_number}.saccades);
+                basetestCase.verifyEqual(myparticipant.TRIALS{trial_number}.fixations,...
+                    myparticipant_actual.TRIALS{trial_number}.fixations);
+            end
+         end
+%         
+        function test_extendedfunctions(basetestCase)
             %% This function tests to ensure that the raw data can be
             % correctly loaded. In this way, it is testing Itrack.
             test = 'testdata/extended/aj031ro.mat';
@@ -35,21 +40,24 @@ classdef participanttest < matlab.unittest.TestCase
             myparticipant = basefunctions(test);
             %% Check load completed
             myparticipant_actual = loadraw(actual);
-            basetestCase.verifyEqual(myparticipant.TRIAL,myparticipant_actual.TRIALS)
-        end
-        
-        
+            for trial_number = 1:length(myparticipant.TRIALS)
+                basetestCase.verifyEqual(myparticipant.TRIALS(trial_number).saccades,...
+                                        myparticipant_actual(trial_number).TRIALS);
+            end
+       end        
     end
 end
 function myparticipant = loadraw(matfile)
     %% assumes matfile contains a raw loaded participant object
     % returns the given participant object
-    myparticipant = load(matfile, 'myparticipant');    
+    loaded_struct = load(matfile, 'myparticipant');    
+    myparticipant = loaded_struct.myparticipant;
 end
 function myparticipant = basefunctions(matfile)
 %% assumes matfile contains a raw loaded participant object
 % returns and sets the base statistics for the given participant
-load(matfile);
+loaded_struct = load(matfile);    
+myparticipant = loaded_struct.myparticipant;
 myparticipant.set_trials();
 num_trials = myparticipant.NUM_TRIALS;
 myparticipant.set_base(1:num_trials);
