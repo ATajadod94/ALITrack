@@ -78,7 +78,7 @@ classdef trial < handle
                     obj.get_timeindex(start_event, end_event);            
             obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
             
-            if isfield('dims',obj.parent.screen)
+            if isfield(obj.parent.screen,'dims')
                 trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
                 trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
             end
@@ -240,10 +240,12 @@ classdef trial < handle
         %% Saccade methods
         function saccade_base(obj)
             obj.number_of_saccade
-            obj.duration_of_saccade
-            obj.amplitude_of_saccade
-            obj.deviation_of_amplitude_of_saccade
-            obj.average_saccade_amplitude
+            if obj.saccades.number > 0 
+                obj.duration_of_saccade
+                obj.amplitude_of_saccade
+                obj.deviation_of_amplitude_of_saccade
+                obj.average_saccade_amplitude
+            end
         end
         function saccade_extended(obj)
             obj.deviation_of_duration_of_saccade
@@ -257,18 +259,22 @@ classdef trial < handle
             if ~isempty(intrial_index)
                 if trial_data.Saccades.entime(intrial_index(1))- obj.start_time  <  minimum_duration
                     intrial_index = intrial_index(2:end);
-                end
+                end         
             end
+            
+            if ~isempty(intrial_index) % our indices might be reduced to non after the previous step
+                [~,col,~] =  find(obj.sample_time == trial_data.Saccades.sttime(intrial_index));
+                obj.saccades.start = obj.trial_time(col);
+                [~,col,~] =  find(obj.sample_time == trial_data.Saccades.entime(intrial_index));
+                obj.saccades.end = obj.trial_time(col);
+            end
+            
             obj.saccades.rawindex = intrial_index;
             obj.saccades.number = length(intrial_index);
-            [~,col,~] =  find(obj.sample_time == trial_data.Saccades.sttime(intrial_index));
-            obj.saccades.start = obj.trial_time(col);
-            [~,col,~] =  find(obj.sample_time == trial_data.Saccades.entime(intrial_index));
-            obj.saccades.end = obj.trial_time(col);
+
         end       
         function duration_of_saccade(obj)
             % sets the duraiton of saccades for the trial
-            disp(obj.trial_no)
             obj.saccades.duration = obj.saccades.end - obj.saccades.start ;
         end   
         function amplitude_of_saccade(obj)
@@ -314,7 +320,7 @@ classdef trial < handle
                 thereshold.degree = 0.5; % deg
                 thereshold.saccade_duration = 20; %ms
             end
-                
+            %% TODO : add a check for thereshold.saccade_duration > 1/frqunecy
             % setting saccades
             [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
             saccade_index = double(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
