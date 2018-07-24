@@ -25,9 +25,21 @@ classdef participanttest < matlab.unittest.TestCase
         function test_basefunctions(basetestCase)
             %% This function tests to ensure that the raw data can be
             % correctly loaded. In this way, it is testing Itrack.
-            tests = {'testdata/basic/aj031ro.mat','testdata/basic/svrr101.mat'} ;
-            actuals = {'testdata/basic/aj031ro_actual.mat', 'testdata/basic/svrr101_actual.mat'};
-                
+            tests = {'testdata/Basic/aj031ro.mat';
+                        'testdata/Basic/svrr101.mat';
+                        'testdata/Basic/sver101.mat';
+                        'testdata/Basic/2003.mat';
+                        'testdata/Basic/sver308.mat';
+                        'testdata/Basic/id02ma.mat';
+                        'testdata/Basic/sc04ra.mat'};
+            actuals = {'testdata/Basic/aj031ro_actual.mat';
+                        'testdata/Basic/svrr101_actual.mat';
+                        'testdata/Basic/sver101_actual.mat';
+                        'testdata/Basic/2003_actual.mat';
+                        'testdata/Basic/sver308_actual.mat';
+                        'testdata/Basic/id02ma_actual.mat';
+                        'testdata/Basic/sc04ra_actual.mat'};
+                    
             for test_num = 1:length(tests)
                 test = tests{test_num};
                 actual = actuals{test_num};

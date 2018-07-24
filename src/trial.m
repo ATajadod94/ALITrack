@@ -87,7 +87,7 @@ classdef trial < handle
             obj.y = trial_data.gy(obj.index);
             obj.num_samples = length(obj.x);
             obj.sample_time = full_trial_time(obj.index);
-            obj.trial_time = 1+obj.sample_time - obj.sample_time(1);
+            obj.trial_time = obj.sample_time - obj.sample_time(1);
             obj.rois.single = [];
             obj.rois.combined = [];
         end             
@@ -132,7 +132,7 @@ classdef trial < handle
         end
         function [first, last, full_trial_time]  = get_timeindex(obj,firstinput,lastinput)
              trial_data = obj.get_itrack;
-             full_trial_time = 1 + 1000*(0:trial_data.numsamples-1) * 1/trial_data.sample_rate;
+             full_trial_time = 1000*(0:trial_data.numsamples-1) * 1/trial_data.sample_rate;
              % Todo:  handle durations
              switch class(firstinput)         
                 case 'char' %empty

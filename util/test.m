@@ -1,6 +1,6 @@
             p_folder = {
-                       
-                        'testdata/raw/sc04ra.edf'};
+                        'testdata/raw/id02ma.edf'};
+
 
 for p_num = 1:length(p_folder)
     myparticipant = participant(['/Users/ryanlab/Desktop/AliT/Scripts/ALItrack/' ,p_folder{p_num}]);
@@ -11,3 +11,4 @@ end
 
 
 %'testdata/raw/2003.edf';
+

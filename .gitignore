@@ -4,3 +4,6 @@ src/trial.m~
 *.edf
 Presentation.mlx
 example.m
+.DS_Store
+dep/.DS_Store
+testdata/.DS_Store
