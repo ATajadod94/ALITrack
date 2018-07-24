@@ -309,51 +309,6 @@ classdef trial < handle
             obj.saccades.duration_variation = util.zscore(double(obj.saccades.duration));
         end    
         %functional 
-        function set_eyelink_saccade(obj, thereshold)
-            %% detects saccades based on existing  defenition 
-            obj.saccades.eye_link = struct();
-            % intializing the eyelink theresholds
-            if ~isstruct(thereshold)
-                thereshold = struct();
-                thereshold.acceleration = 8000; % deg/s 
-                thereshold.velocity = 30; % deg / s^2
-                thereshold.degree = 0.5; % deg
-                thereshold.saccade_duration = 20; %ms
-            end
-            %% TODO : add a check for thereshold.saccade_duration > 1/frqunecy
-            % setting saccades
-            [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
-            saccade_index = double(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
-            saccade_index = mark_endingpoints(obj.get_time,saccade_index,thereshold.saccade_duration); %maybe use a diff thereshold here?
-            saccade_detector = find(saccade_index);
-            starttime = [0, obj.get_time('ms',saccade_detector)]; %#ok<FNDSB>
-            tmp = find(diff(starttime) > thereshold.saccade_duration)+1;
-            obj.saccades.eye_link.start_time  = starttime(tmp);
-            tmp = tmp(2:end); % trial cant start with a saccade ending 
-            obj.saccades.eye_link.end_time  = starttime(tmp(1:end)-1);
-            obj.saccades.eye_link.end_time = obj.saccades.eye_link.end_time + thereshold.saccade_duration; 
-            if length(obj.saccades.eye_link.end_time) < length(obj.saccades.eye_link.start_time)
-                obj.saccades.eye_link.end_time = [obj.saccades.eye_link.end_time, obj.saccades.eye_link.start_time(end)+ thereshold.saccade_duration];
-            end
-            obj.saccades.eye_link.num_saccades = length(tmp);
-            obj.saccades.eye_link.marked_saccade = mark_fixations(obj.get_time,obj.saccades.eye_link.start_time,obj.saccades.eye_link.end_time);
-            
-            
-            % setting fixations
-            state_changes =  obj.get_time('ms',find(diff(obj.saccades.eye_link.marked_saccade == 0))); %#ok<FNDSB> 
-            defined_states = saccade_index(~isnan(saccade_index));
-            initial_state = defined_states(1);          
-            if  initial_state == 0 %start with fixation
-                fixation_starts = 1:2:length(state_changes);
-            elseif initial_state == 1 % starts with saccade
-               fixation_starts = 2:2:length(state_changes);
-            end
-            obj.fixations.eye_link.start_time = state_changes(fixation_starts);
-            obj.fixations.eye_link.end_time = setdiff(state_changes, obj.fixations.eye_link.start_time);
-            obj.fixations.eye_link.num_fixations = length( obj.fixations.eye_link.start_time);
-            
-            obj.saccades.eye_link.defenition = thereshold;              
-        end     
         function get_issaccade(obj)
             % sets the issaccade vector.
             obj.saccades.issaccade = zeros(1,obj.num_samples);
@@ -590,28 +545,75 @@ classdef trial < handle
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
         end      
         %% Extended methods
-        function recurrence(obj, varargin)            
+        function set_eyelink_saccade(obj, thereshold)
+            %% detects saccades based on existing  defenition 
+            obj.saccades.eye_link = struct();
+            % intializing the eyelink theresholds
+            if ~isstruct(thereshold)
+                thereshold = struct();
+                thereshold.acceleration = 8000; % deg/s 
+                thereshold.velocity = 30; % deg / s^2
+                thereshold.degree = 0.5; % deg
+                thereshold.saccade_duration = 20; %ms
+            end
+            %% TODO : add a check for thereshold.saccade_duration > 1/frqunecy
+            % setting saccades
+            [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
+            saccade_index = double(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
+            saccade_index = mark_endingpoints(obj.get_time,saccade_index,thereshold.saccade_duration); %maybe use a diff thereshold here?
+            saccade_detector = find(saccade_index);
+            starttime = [0, obj.get_time('ms',saccade_detector)]; %#ok<FNDSB>
+            tmp = find(diff(starttime) > thereshold.saccade_duration)+1;
+            obj.saccades.eye_link.start_time  = starttime(tmp);
+            tmp = tmp(2:end); % trial cant start with a saccade ending 
+            obj.saccades.eye_link.end_time  = starttime(tmp(1:end)-1);
+            obj.saccades.eye_link.end_time = obj.saccades.eye_link.end_time + thereshold.saccade_duration; 
+            if length(obj.saccades.eye_link.end_time) < length(obj.saccades.eye_link.start_time)
+                obj.saccades.eye_link.end_time = [obj.saccades.eye_link.end_time, obj.saccades.eye_link.start_time(end)+ thereshold.saccade_duration];
+            end
+            obj.saccades.eye_link.num_saccades = length(tmp);
+            obj.saccades.eye_link.marked_saccade = mark_fixations(obj.get_time,obj.saccades.eye_link.start_time,obj.saccades.eye_link.end_time);
+            
+            
+            % setting fixations
+            state_changes =  obj.get_time('ms',find(diff(obj.saccades.eye_link.marked_saccade == 0))); %#ok<FNDSB> 
+            defined_states = saccade_index(~isnan(saccade_index));
+            initial_state = defined_states(1);          
+            if  initial_state == 0 %start with fixation
+                fixation_starts = 1:2:length(state_changes);
+            elseif initial_state == 1 % starts with saccade
+               fixation_starts = 2:2:length(state_changes);
+            end
+            obj.fixations.eye_link.start_time = state_changes(fixation_starts);
+            obj.fixations.eye_link.end_time = setdiff(state_changes, obj.fixations.eye_link.start_time);
+            obj.fixations.eye_link.num_fixations = length( obj.fixations.eye_link.start_time);
+            
+            obj.saccades.eye_link.defenition = thereshold;              
+         end
+        function recurrence(obj, varargin)
             %% Fixed Grid method
             obj.calcHits('rois', {'grid_50'})
             grid_hits = obj.rois.single(1).hits;
             recurrance_scatter = zeros(length(grid_hits),length(grid_hits));
             for  i = 1:length(grid_hits)
                    hits = find(grid_hits == grid_hits(i));
-                   recurrance_scatter(i, hits) = 1;
+                   recurrance_scatter(i, hits) = 1; %#ok<FNDSB>
             end
+            
+            
            %  spy(recurrance_scatter);
              
-            %% Fixation distance method
-            radius = 60; 
-            n = obj.fixations.number;
-            distance_matrix = util.fixation_distance(obj.fixations);
-            distance_matrix(find(distance_matrix <= radius)) = 1;
-            distance_matrix(find(distance_matrix > radius)) = 0;
-            spy(distance_matrix);            
-            R = (sum(sum(distance_matrix)) - b)/2;
-            Rec = 100  * (2 * R)/ (n * (n-1));
-            Determinism = 100 * abs(n)/R;
-            % better way of doing it : numel(find(distance_matrix))/ numel(distance_matrix)
+%             %% Fixation distance method
+%             radius = 60; 
+%             n = obj.fixations.number;
+%             distance_matrix = fixation_distance(obj.fixations);
+%             distance_matrix(find(distance_matrix <= radius)) = 1; %#ok<FNDSB>
+%             distance_matrix(find(distance_matrix > radius)) = 0; %#ok<FNDSB>
+%             spy(distance_matrix);            
+%             R = (sum(sum(distance_matrix)) - b)/2;
+%             Rec = 100  * (2 * R)/ (n * (n-1));
+%             Determinism = 100 * abs(n)/R;
+%             % better way of doing it : numel(find(distance_matrix))/ numel(distance_matrix)
         end         
         function entropy(obj, rois)        
             obj.calcEyehits_('rois', rois);           
@@ -661,11 +663,17 @@ classdef trial < handle
                 end
             end
         end
+        function fixation_heat_map(obj)
+            a = 1;
+        end
 
      end
- end
+end
       
-%% FILE READERS
+ 
+%% HELPERS 
+
+% FILE READERS
  function roi_table = read_ias(filename, startRow, endRow)
         % reads user_inputted ias masks
         % assumes  Format for each line of text:
@@ -683,8 +691,7 @@ classdef trial < handle
         fclose(fileID);       
         roi_table = table(dataArray{1:end-1});
  end 
- 
-%% MARKERS
+% MARKERS
  function samplemarker = mark_fixations(sample_time,saccade_start,saccade_end)
     samplemarker = zeros(length(sample_time),1);
     sample_index = 0;
@@ -695,7 +702,6 @@ classdef trial < handle
     end
  
  end
- 
  function samplemarker = mark_endingpoints(sample_time,samplemarker, thereshold)
     inital_state = samplemarker(1);
     state_change = find(samplemarker ~= inital_state, 1); 
@@ -709,25 +715,29 @@ classdef trial < handle
         samplemarker(1:state_change) = NaN;
     end
  end
- 
-
-%% HANDLING ARGUMENTS 
-function accept = checktemporal(inputs)
-    numiunputs = length(inputs);
-    accept = 1;
-    if (numiunputs > 3 || numiunputs == 0)
-        assert( ' You can only give one or two values for the temporal inputs ')
-    end
-    for input_idx = 1:numiunputs
-        input = inputs(input_idx);
-        if ~ ( isstring(input) || isnumeric(input) || input == ' ')
-            accept = 0;
-        end
-    end
-end
- 
- 
- 
+ % HANDLING ARGUMENTS
+ function accept = checktemporal(inputs)
+ numiunputs = length(inputs);
+ accept = 1;
+ if (numiunputs > 3 || numiunputs == 0)
+     assert( ' You can only give one or two values for the temporal inputs ')
+ end
+ for input_idx = 1:numiunputs
+     input = inputs(input_idx);
+     if ~ ( isstring(input) || isnumeric(input) || input == ' ')
+         accept = 0;
+     end
+ end
+ end
+ % Fixation utility
+ function diff_matrix = fixation_distance(fixation)
+ diff_matrix = zeros(fixation.number ,fixation.number );
+ for i = 1:fixation.number
+     x_values = fixation.average_gazex - fixation.average_gazex(i);
+     y_values = fixation.average_gazey - fixation.average_gazex(i);
+     diff_matrix(i,:) = sqrt(x_values .^ 2 + x_values .^ 2);
+ end
+ end
  
  
  
