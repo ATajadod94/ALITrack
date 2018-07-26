@@ -1,15 +1,10 @@
-function outfile = heatscatter(X, Y, outpath, outname, numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
+function outfile = heatscatter(X, Y, numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% heatscatter(X, Y, outpath, outname, numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
+%% heatscatter(X, Y,numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
 % mandatory:
 %            X                  [x,1] array containing variable X
 %            Y                  [y,1] array containing variable Y
-%            outpath            path where the output-file should be saved.
-%                                leave blank for current working directory
-%            outname            name of the output-file. if outname contains
-%                                filetype (e.g. png), this type will be used.
-%                                Otherwise, a pdf-file will be generated
 % optional:
 %            numbins            [double], default 50
 %                                number if bins used for the
@@ -34,20 +29,13 @@ function outfile = heatscatter(X, Y, outpath, outname, numbins, markersize, mark
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-    %%%% mandatory
+    %%%% mandatory %putpath and outdir removed by Ali
     if ~exist('X','var') || isempty(X)
         error('Param X is mandatory! --> EXIT!');
     end
     if ~exist('Y','var') || isempty(Y)
         error('Param Y is mandatory! --> EXIT!');
     end
-    if ~exist('outpath','var')
-        error('Param outpath is mandatory! --> EXIT!');
-    end
-    if ~exist('outname','var') || isempty(outname)
-        error('Param outname is mandatory! --> EXIT!');
-    end
-    
     %%%% optional
     if ~exist('numbins','var') || isempty(numbins)
         numbins = 50;
@@ -68,7 +56,7 @@ function outfile = heatscatter(X, Y, outpath, outname, numbins, markersize, mark
         plot_colorbar = 1;
     end
     if ~exist('plot_lsf','var') || isempty(plot_lsf)
-        plot_lsf = 1;
+        plot_lsf = 0;
     end
     if ~exist('xlab','var') || isempty(xlab)
         xlab = '';
@@ -158,12 +146,7 @@ function outfile = heatscatter(X, Y, outpath, outname, numbins, markersize, mark
         end
         scatter_COL(i) = values(id_X, id_Y);
     
-    end
-    
-    fprintf(' Done!\n');
-    
-    fprintf('Plotting...');
-    
+    end    
     f = figure();
     scatter(X, Y, markersize, scatter_COL, marker);
     
@@ -188,16 +171,5 @@ function outfile = heatscatter(X, Y, outpath, outname, numbins, markersize, mark
     if (~isempty(title))
         title(title);
     end
-    
-    
-    
-    [p,n,r] = fileparts(outname);
-    if (isempty(r))
-        r = '.pdf';
-    end
-    outname = strcat(p,n,r);
-    outfile = fullfile(outpath, outname);
-    saveas(f, outfile);
-    fprintf(' Done!\n');
     
 end

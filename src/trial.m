@@ -189,17 +189,28 @@ classdef trial < handle
                     intrial_index = intrial_index(2:end);
                 end
             end
-            obj.fixations.rawindex = intrial_index;
-            obj.fixations.number = length(intrial_index);
-            [~,col,~] =  find(obj.sample_time == trial_data.Fixations.sttime(intrial_index));
             
-            obj.fixations.start = obj.trial_time(col);
-            [~,col,~] =  find(obj.sample_time == trial_data.Fixations.entime(intrial_index));
-            obj.fixations.end = obj.trial_time(col);
-            if length(obj.fixations.start) < length(obj.fixations.end)
-               obj.fixations.start = [0 ,  obj.fixations.start];
+            if ~isempty(intrial_index) % our indices might be reduced to non after the previous step
+                obj.fixations.rawindex = intrial_index;
+                obj.fixations.number = length(intrial_index);
+                [~,col,~] =  find(obj.sample_time == trial_data.Fixations.sttime(intrial_index));
+                
+                obj.fixations.start = obj.trial_time(col);
+                [~,col,~] =  find(obj.sample_time == trial_data.Fixations.entime(intrial_index));
+                obj.fixations.end = obj.trial_time(col);
+                fixation_cordinates = util.inbetween(obj.sample_time, obj.fixations.start, obj.fixations.end);
+                
+                for i = 1:length(intrial_index)
+                    obj.fixations.cordinates{i,1} = obj.x(find(fixation_cordinates(i,:)));
+                    obj.fixations.cordinates{i,2} = obj.y(find(fixation_cordinates(i,:)));
+                end
             end
-        end         
+            
+            if length(obj.fixations.start) < length(obj.fixations.end)
+                obj.fixations.start = [0 ,  obj.fixations.start];
+            end
+        end
+        
         function duration_of_fixation(obj)
             obj.fixations.duration = obj.fixations.end - obj.fixations.start ;
         end   
@@ -268,6 +279,12 @@ classdef trial < handle
                 obj.saccades.start = obj.trial_time(col);
                 [~,col,~] =  find(obj.sample_time == trial_data.Saccades.entime(intrial_index));
                 obj.saccades.end = obj.trial_time(col);
+                saccade_cordinates = util.inbetween(obj.sample_time, obj.saccades.start, obj.saccades.end);
+                
+                for i = 1:length(intrial_index)
+                    obj.saccades.cordinates{i,1} = obj.x(find(saccade_cordinates(i,:)));
+                    obj.saccades.cordinates{i,2} = obj.y(find(saccade_cordinates(i,:)));
+                end
             end
             
             obj.saccades.rawindex = intrial_index;
@@ -665,14 +682,28 @@ classdef trial < handle
             end
         end
         function fixation_heat_map(obj)
-            x = obj.x(find(obj.fixations.isfixation));
-            y = obj.y(find(obj.fixations.isfixation));
-            heatscatter(x',y', '.','test','10')
+            density = zeros(mytrial.parent.screen.dims);
+            for j = 1:size(obj, 1)
+
+                if (XY(j, 2) > 0 && XY(j, 2) <= size(Image, 1) &&...
+                        XY(j, 1) > 0 && XY(j, 1) <= size(Image, 2))
+
+                    density(XY(j, 2), XY(j, 1)) = density(XY(j, 2), XY(j, 1)) + XY(j, 3);
+
+                end
+
+            end
+
         end
         function saccade_plot(obj)
-            x = obj.x(find(obj.fixations.isfixation));
-            y = obj.y(find(obj.fixations.isfixation));
-            heatscatter(x',y', '.','test','10')
+            figure;
+            hold on
+            for saccade_index = 1:obj.saccades.number
+                x = obj.saccades.cordinates{saccade_index,1};
+                y = obj.saccades.cordinates{saccade_index,2};
+                scatter(x,y)
+            end
+            legend();
         end
      end
 end

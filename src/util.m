@@ -7,9 +7,6 @@ classdef util < handle
             end
             score_array = (data - mean(data))/ std(data);
         end
-        
-
-        
         function sim_transition(transitions, targets)
             mysequence = []; % help targs
             all_targets_hit = False; % boolean
@@ -23,8 +20,7 @@ classdef util < handle
             end
             
             
-        end
-        
+        end      
         function [acceleration,speed] = Speed_Deg(X, Y, distance, height_mm, width_mm , height_px , width_px, hz)
             hor = atan((width_mm / 2) / distance) * (180 / pi) * 2 / width_px * X;
             ver = atan((height_mm / 2) / distance) * (180 / pi) * 2 / height_px * Y;
@@ -36,8 +32,7 @@ classdef util < handle
             speed = [sqrt(diff(hor(1:2:end)).^2 + diff(ver(1:2:end)).^2) * (hz/2), 0 ];
             speed = repelem(speed,2);
             acceleration =  diff([speed , 0]) * (hz);
-        end
-        
+        end       
         function get_ent(number_of_regions, looked_regions)
             %% Inputs
             number_of_regions = 10;
@@ -73,10 +68,13 @@ classdef util < handle
             
             entropy_total = column_entropy_totals + row_entropy_totals - cellenttotal;
             entropytotal = 1-( entropy_total /correction);
-        end
-        
+        end        
         function bool = inbetween(value, lower, bigger)
-           bool = value <= bigger & value >= lower;
+            assert(length(lower) == length(bigger), 'Lower and upper bound must have the same dimensions')
+            bool = zeros(length(lower),length(value));
+            for i = 1:length(lower)
+                bool(i,:) = value <= bigger(i) & value >= lower(i);
+            end
         end
     end
     
