@@ -1,5 +1,6 @@
 %{
 To Do list : 
+0) ADD A GET SET TRIAL TO PARTICIPANT
 1) Decide on what the outputs should look like
 1) Make all saccade variables the same dimensions
 4) remove hits when removing roi
@@ -664,9 +665,15 @@ classdef trial < handle
             end
         end
         function fixation_heat_map(obj)
-            a = 1;
+            x = obj.x(find(obj.fixations.isfixation));
+            y = obj.y(find(obj.fixations.isfixation));
+            heatscatter(x',y', '.','test','10')
         end
-
+        function saccade_plot(obj)
+            x = obj.x(find(obj.fixations.isfixation));
+            y = obj.y(find(obj.fixations.isfixation));
+            heatscatter(x',y', '.','test','10')
+        end
      end
 end
       
