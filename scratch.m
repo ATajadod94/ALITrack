@@ -18,7 +18,7 @@ num_trials = myparticipant.NUM_TRIALS;
 myparticipant.set_base(1:num_trials);
 
 %1) Get your Trial 
-mytrial = myparticipant(10);
+mytrial = myparticipant(1);
 
 %2 ) Explore!
 disp(mytrial.fields)

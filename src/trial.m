@@ -56,7 +56,7 @@ classdef trial < handle
     end
     
     methods
-        %% Initalization methods 
+        %% Constrcutor  
         function obj = trial(parent, trial_no, varargin)
             % Given a parent participant, the data and a trial number with
             % optional arguments for start and end time of relevant data
@@ -82,6 +82,8 @@ classdef trial < handle
             if isfield(obj.parent.screen,'dims')
                 trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
                 trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
+                trial_data.gx(trial_data.gx < 0 ) = nan;
+                trial_data.gy(trial_data.gy < 0 ) = nan;
             end
             
             obj.x = trial_data.gx(obj.index);
@@ -91,8 +93,7 @@ classdef trial < handle
             obj.trial_time = obj.sample_time - obj.sample_time(1);
             obj.rois.single = [];
             obj.rois.combined = [];
-        end             
-        
+        end                    
         %% Helper funcions
         function get_polar(obj)
             % sets the polar cordinates for the trial. Saved in the theta
@@ -168,11 +169,13 @@ classdef trial < handle
         %% Fixation methods 
         function fixation_base(obj)
             obj.number_of_fixation
-            obj.duration_of_fixation
-            obj.avarage_fixation_duration
-            obj.max_fixation_duration
-            obj.min_fixation_duration
-            obj.location_of_fixation
+            if obj.fixations.number > 0 
+                obj.duration_of_fixation
+                obj.avarage_fixation_duration
+                obj.max_fixation_duration
+                obj.min_fixation_duration
+                obj.location_of_fixation
+            end
         end
         function fixation_extended(obj)
             obj.deviation_of_duration_of_fixation
@@ -204,13 +207,14 @@ classdef trial < handle
                     obj.fixations.cordinates{i,1} = obj.x(find(fixation_cordinates(i,:)));
                     obj.fixations.cordinates{i,2} = obj.y(find(fixation_cordinates(i,:)));
                 end
-            end
-            
-            if length(obj.fixations.start) < length(obj.fixations.end)
-                obj.fixations.start = [0 ,  obj.fixations.start];
-            end
+                
+                if length(obj.fixations.start) < length(obj.fixations.end)
+                    obj.fixations.start = [0 ,  obj.fixations.start];
+                end
+            else
+                obj.fixations.number = 0;
+            end  
         end
-        
         function duration_of_fixation(obj)
             obj.fixations.duration = obj.fixations.end - obj.fixations.start ;
         end   
@@ -652,7 +656,7 @@ classdef trial < handle
             plot(obj.trial_time,obj.y)
             plot(obj.trial_time,obj.angular_velocity,'linewidth',2)
             plot(obj.trial_time,obj.angular_acceleration/100)
-            % should set some plot specifications here 
+            % should set some plot specifications here
             for saccade = obj.saccades.start
                 plot([saccade saccade], [1 1000], 'r:','linewidth', 1)
             end
@@ -662,7 +666,7 @@ classdef trial < handle
                 plot([saccade saccade], [1 1000], 'b:','linewidth', 1)
             end
             legend('x','y','velocty','acceleration/100')
-
+            
         end
         function animate(obj)
             % Creates and draws an animation plot for the trial 
@@ -682,20 +686,30 @@ classdef trial < handle
             end
         end
         function fixation_heat_map(obj)
-            density = zeros(mytrial.parent.screen.dims);
-            for j = 1:size(obj, 1)
-                density(XY(j, 2), XY(j, 1)) = density(XY(j, 2), XY(j, 1)) + XY(j, 3);
+            x_dim = obj.parent.screen.dims(1);
+            y_dim = obj.parent.screen.dims(2);
+            density = zeros(x_dim, y_dim);
+            for fixation_number = 1:obj.fixations.number
+                cord_x = floor(obj.fixations.cordinates{fixation_number,1});
+                cord_y = floor(obj.fixations.cordinates{fixation_number,2});
+                display(fixation_number)
+                %cord_x = floor(obj.fixations.average_gazex(fixation_number));
+                %cord_y = floor(obj.fixations.average_gazey(fixation_number));
+                density(cord_x,cord_y ) = density(cord_x, cord_y) + obj.fixations.duration(fixation_number);
             end
+            h = fspecial('gaussian', 5, 5);            
+            HeatMap = imfilter(density, h, 'replicate');
+            surf(1:y_dim, 1:x_dim, HeatMap, 'LineStyle', 'none', 'FaceAlpha', 0.4)            
+            colormap jet
+            colorbar
         end
-        
-        
         function saccade_plot(obj)
             figure;
             hold on
             for saccade_index = 1:obj.saccades.number
                 x = obj.saccades.cordinates{saccade_index,1};
                 y = obj.saccades.cordinates{saccade_index,2};
-                scatter(x,y)
+                plot(x,y)
             end
             legend();
         end

@@ -54,6 +54,5 @@ HeatMap = imgaussfilt(density, 6, 'Padding', 'circular');
 
 % HeatMap = imfilter(density, h, 'replicate');
 
-LongestFixation = max(XY(:, 3));
 
 end
