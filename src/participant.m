@@ -173,10 +173,13 @@ classdef participant < iTrack
                 plot([saccade/2 saccade/2], [1 1000])
             end
         end
+        % default overwrite 
         function varargout = subsref(obj,S)
             [objfields,behfields] = get_all_fields(obj);
             if length(S) == 1
-                if  ismember(S.subs,[methods('iTrack');properties('iTrack')])
+                if S.type == '()'
+                    [varargout{1:nargout}] = obj.trial__(S.subs{1});
+                elseif  ismember(S.subs,[methods('iTrack');properties('iTrack')])
                     [varargout{1:nargout}]  = obj.subsref@iTrack(S);
                 elseif ismember(S.subs,[methods('participant');properties('participant')])
                     [varargout{1:nargout}] = builtin('subsref',obj,S);
@@ -196,6 +199,21 @@ classdef participant < iTrack
                     end
                 else
                     [varargout{1:nargout}]  = builtin('subsref',obj,S);
+                end
+            end
+        end
+    end
+    methods (Hidden)
+        function requested_trial = trial__(obj, trial_number)
+            try 
+                requested_trial = obj.TRIALS{trial_number};
+            catch ME
+                switch ME.identifier
+                    case 'MATLAB:cellRefFromNonCell' 
+                       error( ' Please set your trials before requesting them')
+                    otherwise 
+                        warning( 'Do you have %d trials?' , trial_number)
+                        rethrow (ME)
                 end
             end
         end
