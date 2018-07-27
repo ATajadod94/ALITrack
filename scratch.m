@@ -7,7 +7,6 @@
 p_folder = 'testdata/raw/aj031ro.edf'; 
 myparticipant = participant(p_folder); 
 
-
 %% Calculating Base statistics 
 
 % First, we need to create trials . In this step, ROI's can also be set.

@@ -21,9 +21,7 @@ switch type
         XY = FixationData{index, {'Xtf', 'Ytf', 'Duration'}};
         
 %         h = fspecial('gaussian', [40, 40], 15);
-    
-    case 'all' % all transformed fixations
-        
+            
         XY = FixationData{:, {'Xtf', 'Ytf', 'Duration'}};
         
         n = n * ns;

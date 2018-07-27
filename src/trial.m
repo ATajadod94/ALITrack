@@ -684,17 +684,11 @@ classdef trial < handle
         function fixation_heat_map(obj)
             density = zeros(mytrial.parent.screen.dims);
             for j = 1:size(obj, 1)
-
-                if (XY(j, 2) > 0 && XY(j, 2) <= size(Image, 1) &&...
-                        XY(j, 1) > 0 && XY(j, 1) <= size(Image, 2))
-
-                    density(XY(j, 2), XY(j, 1)) = density(XY(j, 2), XY(j, 1)) + XY(j, 3);
-
-                end
-
+                density(XY(j, 2), XY(j, 1)) = density(XY(j, 2), XY(j, 1)) + XY(j, 3);
             end
-
         end
+        
+        
         function saccade_plot(obj)
             figure;
             hold on
