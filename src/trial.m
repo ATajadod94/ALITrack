@@ -713,8 +713,6 @@ classdef trial < handle
             c.Label.FontSize = 8;
         end
         function saccade_plot(obj)
-            figure;
-            hold on
             for saccade_index = 1:obj.saccades.number
                 x = obj.saccades.cordinates{saccade_index,1};
                 y = obj.saccades.cordinates{saccade_index,2};
