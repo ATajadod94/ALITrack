@@ -692,16 +692,25 @@ classdef trial < handle
             for fixation_number = 1:obj.fixations.number
                 cord_x = floor(obj.fixations.cordinates{fixation_number,1});
                 cord_y = floor(obj.fixations.cordinates{fixation_number,2});
-                display(fixation_number)
                 %cord_x = floor(obj.fixations.average_gazex(fixation_number));
                 %cord_y = floor(obj.fixations.average_gazey(fixation_number));
                 density(cord_x,cord_y ) = density(cord_x, cord_y) + obj.fixations.duration(fixation_number);
             end
-            h = fspecial('gaussian', 5, 5);            
-            HeatMap = imfilter(density, h, 'replicate');
-            surf(1:y_dim, 1:x_dim, HeatMap, 'LineStyle', 'none', 'FaceAlpha', 0.4)            
-            colormap jet
-            colorbar
+            figure;
+            heat_axes = axes();
+            hold on
+            h = fspecial('gaussian', 5, 5);
+            HeatMap = imgaussfilt(density, 6, 'Padding', 'circular');
+            X = imagesc(HeatMap);
+            colormap(heat_axes, 'jet');
+            hold off          
+            set(X, 'AlphaData', HeatMap ./ max(HeatMap(:)));
+            LongestFixation = max(obj.fixations.duration);
+            c = colorbar('Ticks',0:max(HeatMap(:))/4: max(HeatMap(:)),...
+                'TickLabels',{round(0:LongestFixation/4:LongestFixation)},...
+                'FontSize', 6);          
+            c.Label.String = 'Fixation duration (ms)';
+            c.Label.FontSize = 8;
         end
         function saccade_plot(obj)
             figure;
