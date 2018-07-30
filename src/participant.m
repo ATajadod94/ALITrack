@@ -191,11 +191,12 @@ classdef participant < iTrack
                     end
                 end
             else
-                if ismember(S(1).subs,[methods('participant');properties('participant')])
+                if ismember(S(1).subs,[methods('participant');properties('participant')]) && ...
+                    ~ismember(S(1).subs,[methods('iTrack');properties('iTrack')]);
                     [varargout{1:nargout}] = builtin('subsref',obj,S);
                 elseif ismember(S(1).subs, [methods('trial');properties('trial')])
-                    for i = S(2).subs{:}
-                        subsref(obj.TRIALS{i},S(1))
+                    for i = 1:obj.NUM_TRIALS
+                        subsref(obj.TRIALS{i},S)
                     end
                 else
                     [varargout{1:nargout}]  = builtin('subsref',obj,S);
