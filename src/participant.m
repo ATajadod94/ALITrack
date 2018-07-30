@@ -73,7 +73,7 @@ classdef participant < iTrack
         end
         function set_extended(obj, trials)
             for trial = trials
-                obj.TRIALS{trial}.set_extended
+                obj.TRIALS{trial}.set_extended()
             end
         end
         function set_eyelink(obj,trials)
@@ -87,44 +87,85 @@ classdef participant < iTrack
             p.addRequired('obj')
             p.addParameter('trials', 1:obj.NUM_TRIALS, @(x) isvector(x))
             p.addParameter('output', 'base', @(x) ischar(x) | isvector(x));
-            p.addParameter('fiename', obj.EDF_File, @(x) ischar(x))
-            p.parse(obj,varargin{:})
-            
+            p.parse(obj,varargin{:})            
             trials = p.Results.trials;
             fixation_locations = {};
             saccade_locations= {};
             switch p.Results.output
-                case string(base)
+                case string('base')
                     obj.set_base(trials)
-                case string(extende)
+                case string('extended')
                     obj.set_extended(trials)
-                case string(saccades)
+                case string('saccades')
                     obj.set_extended(trials)
-                case string(fixations)
+                case string('fixations')
                     obj.set_extended(trials)
-                case string(eyelink)
+                case string('eyelink')
                     obj.set_eyelink(trials)
             end
             switch p.Results.output
-                case string(eyelink)
+                case string('eyelink')
                     for trialnum = trials
                         index(trialnum) = trialnum;
                         fixation_count(trialnum) =  obj.TRIALS{trialnum}.fixations.eye_link.num_fixations;
                         saccade_count(trialnum)  = obj.TRIALS{trialnum}.saccades.eye_link.num_saccades;
                     end
-                otherwise
+                case string('base')
                     for trialnum = trials
+                        mytrial = obj.TRIALS{trialnum};
                         index(trialnum) = trialnum;
-                        fixation_count(trialnum) =  obj.TRIALS{trialnum}.fixations.number;
-                        saccade_count(trialnum) = obj.TRIALS{trialnum}.saccades.number;
-                        %fixation_locations(trialnum) =  [obj.TRIALS{trialnum}.fixations.start,obj.TRIALS{trialnum}.fixations.end];
-                        %saccade_locations(trialnum) = [obj.TRIALS{trialnum}.saccades.start,obj.TRIALS{trialnum}.saccades.end];
+                        fixation_count(trialnum) =  mytrial.fixations.number;
+                        saccade_count(trialnum) = mytrial.saccades.number;
+                        output = [index', fixation_count',saccade_count'];
                     end
+                case string('extended')
+                    row_num = 2;
+                    for trialnum = trials
+                        mytrial = obj.TRIALS{trialnum};
+                        % base
+                        index(trialnum) = trialnum;
+                        fixation_count(trialnum) =  mytrial.fixations.number;
+                        saccade_count(trialnum) = mytrial.saccades.number;
+                        output{row_num,1} = index(trialnum);
+                        output{row_num,2} = fixation_count(trialnum);
+                        output{row_num,3} = saccade_count(trialnum);
+                        %extended
+                        fixation_start{trialnum} = mytrial.fixations.start;
+                        fixation_end{trialnum} = mytrial.fixations.end;
+                        fixation_averagegaze_x{trialnum} = mytrial.fixations.average_gazex;
+                        fixation_averagegaze_y{trialnum} = mytrial.fixations.average_gazey;
+                        fixation_duration{trialnum} = mytrial.fixations.duration;
+                        fixation_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation;;
+                        
+                                                
+                        output{row_num,4} = fixation_start{trialnum} ;
+                        output{row_num,5} = fixation_end{trialnum};
+                        output{row_num,6} = fixation_averagegaze_x{trialnum} ;                                         
+                        output{row_num,7} = fixation_averagegaze_y{trialnum};
+                        output{row_num,8} = fixation_duration{trialnum};
+                        output{row_num,9} = fixation_duration_standarddeviation(trialnum);                        
+                        
+                        saccades_start{trialnum} = mytrial.saccades.start;
+                        saccades_end{trialnum} = mytrial.saccades.end;
+                        saccade_amplitude{trialnum} = mytrial.saccades.amplitude;
+                        saccades_amplitude_standarddeviation{trialnum} = mytrial.saccades.amplitude_variation;
+                        saccades_duration{trialnum} = mytrial.saccades.duration;
+                        saccades_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation;                        
+                        
+                        output{row_num,10} = saccades_start{trialnum} ;
+                        output{row_num,11} = saccades_end{trialnum};
+                        output{row_num,12} = saccade_amplitude{trialnum} ;
+                        output{row_num,13} = saccades_amplitude_standarddeviation{trialnum};
+                        output{row_num,14} = saccades_duration{trialnum};
+                        output{row_num,15} = saccades_duration_standarddeviation(trialnum);
+                        
+                        row_num = row_num + 1;
+                    end
+                case string('full')
+                    output = obj.to_matrix('trials', trials,'output', 'extended');
+                    
             end
-            
-            output = [index', fixation_count',saccade_count'];
-            
-        end
+        end        
         function to_csv(obj,filename, varargin)
             p = inputParser;
             p.addRequired('obj')
@@ -132,14 +173,21 @@ classdef participant < iTrack
             p.addParameter('trials', 1:obj.NUM_TRIALS, @(x) isvector(x))
             p.addParameter('output', 'base', @(x) ischar(x) | isvector(x));
             p.parse(obj,filename, varargin{:})
-            
-            headers = {'TRIAL_NUMBER'; 'FIXATION_COUNT'; 'SACCADE_COUNT'};
             output = obj.to_matrix(varargin{:});
-            output_table = array2table(output);
-            output_table.Properties.VariableNames = headers;
-            writetable(output_table,filename);
-            %xlswrite(filename,output);
-            
+            switch p.Results.output
+                case 'base'
+                    headers = {'TRIAL_NUMBER'; 'FIXATION_COUNT'; 'SACCADE_COUNT'};
+                    output_table = array2table(output);
+                    output_table.Properties.VariableNames = headers;
+                    writetable(output_table,filename);
+                case 'extended'
+                    headers = {'TRIAL_NUMBER'; 'FIXATION_COUNT'; 'SACCADE_COUNT';'FIXATION_STARTTIME'; 'FIXATION_ENDTIME'; ...
+                        'FIXATION_X_AVG'; 'FIXATION_Y_AVG';'FIXATION_DURATION'; 'FIXATION_DURATION_DEVIATION'; ... 
+                        'SACCADE_STARTTIME'; 'SACCADE_ENDTIME'; 'SACCADEAMPLITUDE'; 'SACCADEAMPLITUDE_DEVIATION'; ...
+                        'SACCADE_DURATION'; 'SACCADE_DURATION_DEVIATION'}';
+                    [output{1,:}] = headers{:};
+                    util.cell2csv(filename, output, ',')
+            end
         end
         % not organized
         function requested_trial = gettrial(obj, trial_number,varargin)
@@ -204,6 +252,7 @@ classdef participant < iTrack
             end
         end
     end
+    
     methods (Hidden)
         function requested_trial = trial__(obj, trial_number)
             try 
