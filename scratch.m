@@ -10,7 +10,7 @@ myparticipant = participant(p_folder);
 %% Calculating Base statistics 
 
 % First, we need to create trials . In this step, ROI's can also be set.
-myparticipant.set_trials();
+myparticipant.set_trials('start_event',"Study_display",'end_event', "Blank_display");
 % After the trials are already set, the base statistics can be used. 
 
 % First, find out how many trials there are 

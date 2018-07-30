@@ -65,7 +65,7 @@ classdef trial < handle
             p.addRequired('parent', @(parent) isa(parent, 'participant'))
             p.addRequired('trial_no',  @(x) isvector(x));
             p.addOptional('temporal_roi', [' ';' '] , @checktemporal)
-            p.parse(parent, trial_no, varargin{:})
+            p.parse(parent, trial_no, varargin{:})            
             start_event = p.Results.temporal_roi(1);
             end_event = p.Results.temporal_roi(2);       
             % main properties  
@@ -723,9 +723,7 @@ classdef trial < handle
      end
 end
       
- 
 %% HELPERS 
-
 % FILE READERS
  function roi_table = read_ias(filename, startRow, endRow)
         % reads user_inputted ias masks

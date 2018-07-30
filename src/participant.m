@@ -63,7 +63,7 @@ classdef participant < iTrack
             start_event = p.Results.start_event;
             end_event = p.Results.end_event;
             for i = p.Results.trial_number
-                obj.TRIALS{i,1} = trial(obj, i ,[start_event;end_event]);
+                obj.TRIALS{i,1} = trial(obj, i ,'temporal_roi', [start_event;end_event]);
             end
         end
         function set_base(obj, trials)
