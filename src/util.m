@@ -18,9 +18,7 @@ classdef util < handle
                     mysequence = [mysequence visited_state];
                 end
             end
-            
-            
-        end      
+        end
         function [acceleration,speed] = Speed_Deg(X, Y, distance, height_mm, width_mm , height_px , width_px, hz)
             hor = atan((width_mm / 2) / distance) * (180 / pi) * 2 / width_px * X;
             ver = atan((height_mm / 2) / distance) * (180 / pi) * 2 / height_px * Y;
@@ -32,43 +30,8 @@ classdef util < handle
             speed = [sqrt(diff(hor(1:2:end)).^2 + diff(ver(1:2:end)).^2) * (hz/2), 0 ];
             speed = repelem(speed,2);
             acceleration =  diff([speed , 0]) * (hz);
-        end       
-        function get_ent(number_of_regions, looked_regions)
-            %% Inputs
-            number_of_regions = 10;
-            looked_regions = [1,3,2,5,6,7,9,4,10,9];
-            
-            %% Variable initlization
-            looks_matrix = zeros(number_of_regions,number_of_regions);
-            entropy_matix = zeros(number_of_regions,number_of_regions);
-            row_total = zeros(number_of_regions);
-            col_total = zeros(number_of_regions);
-            
-            %% Computing the transition matrix
-            for looked_index =2:number_of_regions
-                from = looked_regions(looked_index-1);
-                to = looked_regions(looked_index);
-                looks_matrix(from,to) = looks_matrix(from,to)+1;
-            end
-            
-            %% Entropy calculations
-            entropy_matrix = looks_matrix * log2(1/looks_matrix);
-            
-            columntotals = sum(looks_matrix,1); % option 1 for columns, 2 for rows
-            rowtotals = sum(looks_matrix,2);
-            
-            column_entropy = columntotals * log2(1/columntotals);
-            row_entropy = rowtotals *  log2(1/rowtotals);
-            
-            column_entropy_totals = nansum(column_entropy); %nansum excludes nan values
-            row_entropy_totals = nansum(row_entropy);
-            
-            correction = (column_entropy_totals + row_entropy_totals)/2;
-            cellenttotal = nansum(nansum(entropy_matrix));
-            
-            entropy_total = column_entropy_totals + row_entropy_totals - cellenttotal;
-            entropytotal = 1-( entropy_total /correction);
-        end        
+        end
+        
         function bool = inbetween(value, lower, bigger)
             assert(length(lower) == length(bigger), 'Lower and upper bound must have the same dimensions')
             bool = zeros(length(lower),length(value));

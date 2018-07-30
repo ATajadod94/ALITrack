@@ -201,6 +201,10 @@ classdef trial < handle
                 obj.fixations.start = obj.trial_time(col);
                 [~,col,~] =  find(obj.sample_time == trial_data.Fixations.entime(intrial_index));
                 obj.fixations.end = obj.trial_time(col);
+                if length(obj.fixations.start) < length(obj.fixations.end)
+                    obj.fixations.start = [0 ,  obj.fixations.start];
+                end
+                
                 fixation_cordinates = util.inbetween(obj.sample_time, obj.fixations.start, obj.fixations.end);
                 
                 for i = 1:length(intrial_index)
@@ -208,9 +212,6 @@ classdef trial < handle
                     obj.fixations.cordinates{i,2} = obj.y(find(fixation_cordinates(i,:)));
                 end
                 
-                if length(obj.fixations.start) < length(obj.fixations.end)
-                    obj.fixations.start = [0 ,  obj.fixations.start];
-                end
             else
                 obj.fixations.number = 0;
             end  
@@ -506,12 +507,10 @@ classdef trial < handle
                     coords = [obj.saccades.start_gazex,obj.saccades.start_gazey];                  
                 elseif strcmpi(p.Results.type,'saccade_end')
                      coords = [obj.saccades.end_gazex,obj.saccades.end_gazey];                                      
-                end
-                
+                end               
                 coords = ceil(coords);
                 idx = sub2ind([yres,xres],coords(:,2),coords(:,1));
                 overlap = roi_mask(idx);            
-
                 if strcmpi(p.Results.type,'fixations')
                     obj.rois.single(r).hits = overlap';
                     if ~isfield(obj.fixations,'hits')
@@ -519,7 +518,7 @@ classdef trial < handle
                     end
                     for i = 1:obj.fixations.number
                          if overlap(i) == 1
-                            obj.fixations.hits{i} = [obj.fixations.hits{i}, {obj.rois.single(r).name}];      
+                            obj.fixations.hits{i} = [obj.fixations.hits{i}, obj.rois.single(r).name];      
                          end
                     end
                 elseif strcmpi(p.Results.type,'saccade_start')
@@ -639,14 +638,34 @@ classdef trial < handle
         function entropy(obj, rois)        
             obj.calcEyehits_('rois', rois);           
             number_of_regions = length(rois);
-            for fixation = 1:obj.fixations.number
-                roi_idx = arrayfun(@(s) find(s.name == [rois{:}]), obj.rois.single, 'UniformOutput', false);
-                looked_regions(1:rois) = [];   
+            looked_regions = nan(1,number_of_regions);
+            for fixation_index = 1:obj.fixations.number
+                hit_regions = obj.fixations.hits{fixation_index};
+                roi_idx = arrayfun(@(s) find(s == [rois{:}]), hit_regions, 'UniformOutput', false);
+                if ~isempty(roi_idx) && ~isempty(roi_idx{1})
+                   looked_regions(fixation_index) = roi_idx{:};   
+                end
             end                      
-                looked_regions =looked_regions(diff(looked_regions) ~= 0);
-                util.get_ent(number_of_regions, looked_regions)
+                obj.entropy = get_ent(number_of_regions, looked_regions)
         end
         %% Plotting methods
+        function animate(obj)
+            % Creates and draws an animation plot for the trial 
+            h = animatedline('MaximumNumPoints',1,'color', 'r', 'marker','*');
+            a = tic;
+            xdim =  obj.parent.screen.dims(2);
+            ydim = obj.parent.screen.dims(1);
+            xlim ([0 xdim])
+            ylim([0 ydim])
+            for k = 1:length(obj.x)
+                addpoints(h,obj.x(k),obj.y(k));
+                b = toc(a);
+                if b > 0.001
+                    drawnow
+                    a = tic;
+                end
+            end
+        end
         function plot_angular_velocity(obj)
             figure
             hold on;
@@ -665,23 +684,6 @@ classdef trial < handle
             end
             legend('x','y','velocty','acceleration/100')
             
-        end
-        function animate(obj)
-            % Creates and draws an animation plot for the trial 
-            h = animatedline('MaximumNumPoints',1,'color', 'r', 'marker','*');
-            a = tic;
-            xdim =  obj.parent.screen.dims(2);
-            ydim = obj.parent.screen.dims(1);
-            xlim ([0 xdim])
-            ylim([0 ydim])
-            for k = 1:length(obj.x)
-                addpoints(h,obj.x(k),obj.y(k));
-                b = toc(a);
-                if b > 0.001
-                    drawnow
-                    a = tic;
-                end
-            end
         end
         function fixation_heat_map(obj)
             x_dim = obj.parent.screen.dims(1);
@@ -718,6 +720,7 @@ classdef trial < handle
             end
             legend();
         end
+
      end
 end
       
@@ -786,10 +789,35 @@ end
      y_values = fixation.average_gazey - fixation.average_gazex(i);
      diff_matrix(i,:) = sqrt(x_values .^ 2 + x_values .^ 2);
  end
+ end 
+ function entropytotal = get_ent(number_of_regions, looked_regions)
+ %% Variable initlization
+ looks_matrix = zeros(number_of_regions,number_of_regions);
+ entropy_matix = zeros(number_of_regions,number_of_regions);
+ row_total = zeros(number_of_regions);
+ col_total = zeros(number_of_regions);
+ 
+ %% Computing the transition matrix
+ for looked_index =2:length(looked_regions)
+     from = looked_regions(looked_index-1);
+     to = looked_regions(looked_index);
+     looks_matrix(from,to) = looks_matrix(from,to)+1;
  end
  
+ %% Entropy calculations
+ entropy_matrix = looks_matrix * log2(1./looks_matrix);
+ columntotals = sum(looks_matrix,1); % option 1 for columns, 2 for rows
+ rowtotals = sum(looks_matrix,2); 
+ column_entropy = columntotals .* log2(1./columntotals);
+ row_entropy = rowtotals .* log2(1./rowtotals); 
+ column_entropy_totals = nansum(column_entropy); %nansum excludes nan values
+ row_entropy_totals = nansum(row_entropy); 
+ correction = (column_entropy_totals + row_entropy_totals)/2;
+ cellenttotal = nansum(nansum(entropy_matrix));
  
- 
+ entropy_total = column_entropy_totals + row_entropy_totals - cellenttotal;
+ entropytotal = 1-( entropy_total /correction);
+ end
  
  
  
