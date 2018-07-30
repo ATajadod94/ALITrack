@@ -492,10 +492,8 @@ classdef trial < handle
                 rois = {p.Results.rois};
             else
                 rois = p.Results.rois;
-            end
-            
+            end            
             numROIs = length(rois);
-            
             for r=1:numROIs
                 xres = obj.parent.screen.dims(1);
                 yres = obj.parent.screen.dims(2);
@@ -520,7 +518,9 @@ classdef trial < handle
                         obj.fixations.hits = cell(obj.fixations.number,1);
                     end
                     for i = 1:obj.fixations.number
-                         obj.fixations.hits{i} = [obj.fixations.hits{i}, {obj.rois.single(r).name}];                
+                         if overlap(i) == 1
+                            obj.fixations.hits{i} = [obj.fixations.hits{i}, {obj.rois.single(r).name}];      
+                         end
                     end
                 elseif strcmpi(p.Results.type,'saccade_start')
                     obj.rois.single(r).hits = overlap';
@@ -535,8 +535,7 @@ classdef trial < handle
                         obj.saccades.endhits = [];
                     end
                     obj.saccades.endhits = [obj.saccades.endhits; obj.rois.single(r).name];
-                end
-                
+                end                
             end
         end  
         function set_grid(obj, gridsize)
@@ -641,12 +640,11 @@ classdef trial < handle
             obj.calcEyehits_('rois', rois);           
             number_of_regions = length(rois);
             for fixation = 1:obj.fixations.number
-                obj.rois.single.hits
-                roi_idx = find(arrayfun(@(s) s.name == roi{:}, obj.rois.single));
+                roi_idx = arrayfun(@(s) find(s.name == [rois{:}]), obj.rois.single, 'UniformOutput', false);
                 looked_regions(1:rois) = [];   
             end                      
                 looked_regions =looked_regions(diff(looked_regions) ~= 0);
-                get_ent(number_of_regions, looked_regions)
+                util.get_ent(number_of_regions, looked_regions)
         end
         %% Plotting methods
         function plot_angular_velocity(obj)

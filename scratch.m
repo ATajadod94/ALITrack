@@ -22,3 +22,7 @@ mytrial = myparticipant(1);
 
 %2 ) Explore!
 disp(mytrial.fields)
+
+
+mytrial.makeROIs(ones(4,1), 'shape', 'file' ,'fromfile', '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/M102.jpg.ias','clear',1);
+mytrial.entropy({"1","2","3","4"})
