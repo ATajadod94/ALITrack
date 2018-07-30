@@ -723,7 +723,25 @@ classdef trial < handle
             end
             legend();
         end
-
+        function roi_plot(obj,rois)
+            if ~exist('rois')
+                num_rois = length(obj.rois.single);
+                rois = obj.rois.single;
+            else
+                num_rois  = length(rois);
+            end
+            for roi_index = 1:num_rois
+                myroi = obj.rois.single(roi_index);
+                switch myroi.shape
+                    case 'RECTANGLE'
+                        rectangle('Position', [myroi.coords(1), myroi.coords(2),myroi.coords(3),myroi.coords(4)])
+                        hold on
+                    otherwise
+                        disp('hi')
+                end
+                hold off
+            end
+        end
      end
 end      
 %% HELPERS 

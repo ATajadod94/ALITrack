@@ -21,8 +21,9 @@ myparticipant.set_base(1:num_trials);
 mytrial = myparticipant(1);
 
 %2 ) Explore!
-disp(mytrial.fields)
+disp(mytrial)
 
 
 myparticipant.makeROIs(ones(4,1), 'shape', 'file' ,'fromfile', '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/M102.jpg.ias','clear',1);
 myparticipant.entropy({"2","3","4"})
+face = imread('/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/aj031ro/M102.jpg');
