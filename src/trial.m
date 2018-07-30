@@ -51,10 +51,11 @@ classdef trial < handle
 
         %Conditions
         condition %Associated condition for the given trial
-        
-        
     end
-    
+    properties (Access = private)
+        status = 0
+    end
+   
     methods
         %% Constrcutor  
         function obj = trial(parent, trial_no, varargin)
@@ -159,8 +160,10 @@ classdef trial < handle
         end
         %% Setters
         function set_base(obj)
-            obj.fixation_base
-            obj.saccade_base
+            if obj.status < 20 
+                obj.fixation_base
+                obj.saccade_base
+            end
         end
         function set_extended(obj)
             obj.fixation_extended
@@ -168,14 +171,15 @@ classdef trial < handle
         end
         %% Fixation methods 
         function fixation_base(obj)
-            obj.number_of_fixation
+            obj.number_of_fixation()
             if obj.fixations.number > 0 
-                obj.duration_of_fixation
-                obj.avarage_fixation_duration
-                obj.max_fixation_duration
-                obj.min_fixation_duration
-                obj.location_of_fixation
+                obj.duration_of_fixation()
+                obj.avarage_fixation_duration()
+                obj.max_fixation_duration()
+                obj.min_fixation_duration()
+                obj.location_of_fixation()
             end
+            obj.status = obj.status + 10;
         end
         function fixation_extended(obj)
             obj.deviation_of_duration_of_fixation
@@ -201,16 +205,15 @@ classdef trial < handle
                 obj.fixations.start = obj.trial_time(col);
                 [~,col,~] =  find(obj.sample_time == trial_data.Fixations.entime(intrial_index));
                 obj.fixations.end = obj.trial_time(col);
-                fixation_cordinates = util.inbetween(obj.sample_time, obj.fixations.start, obj.fixations.end);
-                
+                if length(obj.fixations.start) < length(obj.fixations.end)
+                    obj.fixations.start = [obj.trial_time(1) ,  obj.fixations.start];
+                end
+                fixation_cordinates = util.inbetween(obj.trial_time, obj.fixations.start, obj.fixations.end);               
                 for i = 1:length(intrial_index)
                     obj.fixations.cordinates{i,1} = obj.x(find(fixation_cordinates(i,:)));
                     obj.fixations.cordinates{i,2} = obj.y(find(fixation_cordinates(i,:)));
                 end
                 
-                if length(obj.fixations.start) < length(obj.fixations.end)
-                    obj.fixations.start = [0 ,  obj.fixations.start];
-                end
             else
                 obj.fixations.number = 0;
             end  
@@ -262,6 +265,7 @@ classdef trial < handle
                 obj.deviation_of_amplitude_of_saccade
                 obj.average_saccade_amplitude
             end
+            obj.status = obj.status + 10;
         end
         function saccade_extended(obj)
             obj.deviation_of_duration_of_saccade
@@ -721,8 +725,7 @@ classdef trial < handle
             legend();
         end
      end
-end
-      
+end      
 %% HELPERS 
 % FILE READERS
  function roi_table = read_ias(filename, startRow, endRow)

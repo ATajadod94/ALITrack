@@ -20,7 +20,7 @@ classdef util < handle
             end
             
             
-        end      
+        end
         function [acceleration,speed] = Speed_Deg(X, Y, distance, height_mm, width_mm , height_px , width_px, hz)
             hor = atan((width_mm / 2) / distance) * (180 / pi) * 2 / width_px * X;
             ver = atan((height_mm / 2) / distance) * (180 / pi) * 2 / height_px * Y;
@@ -32,7 +32,7 @@ classdef util < handle
             speed = [sqrt(diff(hor(1:2:end)).^2 + diff(ver(1:2:end)).^2) * (hz/2), 0 ];
             speed = repelem(speed,2);
             acceleration =  diff([speed , 0]) * (hz);
-        end       
+        end
         function get_ent(number_of_regions, looked_regions)
             %% Inputs
             number_of_regions = 10;
@@ -68,7 +68,7 @@ classdef util < handle
             
             entropy_total = column_entropy_totals + row_entropy_totals - cellenttotal;
             entropytotal = 1-( entropy_total /correction);
-        end        
+        end
         function bool = inbetween(value, lower, bigger)
             assert(length(lower) == length(bigger), 'Lower and upper bound must have the same dimensions')
             bool = zeros(length(lower),length(value));
@@ -76,6 +76,45 @@ classdef util < handle
                 bool(i,:) = value <= bigger(i) & value >= lower(i);
             end
         end
+        function cell2csv(filename,cellArray,delimiter)
+            % Writes cell array content into a *.csv file.
+            %
+            % CELL2CSV(filename,cellArray,delimiter)
+            %
+            % filename      = Name of the file to save. [ i.e. 'text.csv' ]
+            % cellarray    = Name of the Cell Array where the data is in
+            % delimiter = seperating sign, normally:',' (default)
+            %
+            % by Sylvain Fiedler, KA, 2004
+            % modified by Rob Kohr, Rutgers, 2005 - changed to english and fixed delimiter
+            if nargin<3
+                delimiter = ',';
+            end
+            
+            datei = fopen(filename,'w');
+            for z=1:size(cellArray,1)
+                for s=1:size(cellArray,2)
+                    
+                    var = eval(['cellArray{z,s}']);
+                    
+                    if size(var,1) == 0
+                        var = '';
+                    end
+                    
+                    if isnumeric(var) == 1
+                        var = num2str(var);
+                    end
+                    
+                    fprintf(datei,var);
+                    
+                    if s ~= size(cellArray,2)
+                        fprintf(datei,[delimiter]);
+                    end
+                end
+                fprintf(datei,'\n');
+            end
+            fclose(datei);
+        end
     end
-    
-end
+        
+    end
