@@ -591,10 +591,11 @@ classdef trial < handle
                 thereshold.acceleration = 8000; % deg/s 
                 thereshold.velocity = 30; % deg / s^2
                 thereshold.degree = 0.5; % deg
-                thereshold.saccade_duration = 20; %ms
+                thereshold.saccade_duration = 10; %ms
             end
             %% TODO : add a check for thereshold.saccade_duration > 1/frqunecy
             % setting saccades
+            
             [obj.angular_acceleration, obj.angular_velocity] = util.Speed_Deg(obj.x,obj.y, 700.0 , 250.0, 340.0 ,944.0,1285.0, 500);
             saccade_index = double(obj.angular_velocity > thereshold.velocity & obj.angular_acceleration > thereshold.acceleration);
             saccade_index = mark_endingpoints(obj.get_time,saccade_index,thereshold.saccade_duration); %maybe use a diff thereshold here?
@@ -695,11 +696,11 @@ classdef trial < handle
             for saccade = obj.saccades.start
                 plot([saccade saccade], [1 1000], 'r:','linewidth', 2)
             end
-            line([0 4000],[30 30],'color','k')
-            line([0 4000],[80 80],'color', 'k')
-            %for saccade = obj.saccades.eye_link.start_time
-            %    plot([saccade saccade], [1 1000], 'b:','linewidth', 1)
-            %end
+            line([0 obj.trial_time(end)],[30 30],'color','k')
+            line([0 obj.trial_time(end)],[80 80],'color', 'k')
+%             for saccade = obj.saccades.eye_link.start_time
+%                plot([saccade saccade], [1 1000], 'b:','linewidth', 1)
+%             end
             legend('x','y','velocty','acceleration/100')
             
         end
