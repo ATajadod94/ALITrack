@@ -263,12 +263,10 @@ classdef trial < handle
         %% Saccade methods
         function saccade_base(obj)
             obj.number_of_saccade
-            if obj.saccades.number > 0 
-                obj.duration_of_saccade
-                obj.amplitude_of_saccade
-                obj.deviation_of_amplitude_of_saccade
-                obj.average_saccade_amplitude
-            end
+            obj.duration_of_saccade
+            obj.amplitude_of_saccade
+            obj.deviation_of_amplitude_of_saccade
+            obj.average_saccade_amplitude
             obj.status = obj.status + 10;
         end
         function saccade_extended(obj)
@@ -300,6 +298,9 @@ classdef trial < handle
                     obj.saccades.cordinates{i,1} = obj.x(find(saccade_cordinates(i,:)));
                     obj.saccades.cordinates{i,2} = obj.y(find(saccade_cordinates(i,:)));
                 end
+            else
+                obj.saccades.start = NaN;
+                obj.saccades.end = NaN;
             end
             
             obj.saccades.rawindex = intrial_index;
@@ -308,7 +309,11 @@ classdef trial < handle
         end       
         function duration_of_saccade(obj)
             % sets the duraiton of saccades for the trial
-            obj.saccades.duration = obj.saccades.end - obj.saccades.start ;
+            if obj.saccades.number == 0
+                obj.saccades.duration = NaN;
+            else
+                obj.saccades.duration = obj.saccades.end - obj.saccades.start ;
+            end
         end   
         function amplitude_of_saccade(obj)
             % sets the amplitude of saccades for the trial
@@ -575,6 +580,8 @@ classdef trial < handle
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
         end      
         %% Extended methods
+        function set_angular_velocity(obj,thereshold)
+        end
         function set_eyelink_saccade(obj, thereshold)
             %% detects saccades based on existing  defenition 
             obj.saccades.eye_link = struct();
@@ -679,23 +686,25 @@ classdef trial < handle
         function plot_angular_velocity(obj)
             figure
             hold on;
+            obj.set_eyelink_saccade(1);
             plot(obj.trial_time,obj.x)
             plot(obj.trial_time,obj.y)
             plot(obj.trial_time,obj.angular_velocity,'linewidth',2)
             plot(obj.trial_time,obj.angular_acceleration/100)
             % should set some plot specifications here
             for saccade = obj.saccades.start
-                plot([saccade saccade], [1 1000], 'r:','linewidth', 1)
+                plot([saccade saccade], [1 1000], 'r:','linewidth', 2)
             end
-            line([0 4000],[30 30])
-            line([0 4000],[80 80])
-            for saccade = obj.saccades.eye_link.start_time
-                plot([saccade saccade], [1 1000], 'b:','linewidth', 1)
-            end
+            line([0 4000],[30 30],'color','k')
+            line([0 4000],[80 80],'color', 'k')
+            %for saccade = obj.saccades.eye_link.start_time
+            %    plot([saccade saccade], [1 1000], 'b:','linewidth', 1)
+            %end
             legend('x','y','velocty','acceleration/100')
             
         end
         function fixation_heat_map(obj)
+            sample_rate = unique(diff(obj.trial_time));
             x_dim = obj.parent.screen.dims(1);
             y_dim = obj.parent.screen.dims(2);
             density = zeros(x_dim, y_dim);
@@ -704,13 +713,13 @@ classdef trial < handle
                 cord_y = floor(obj.fixations.cordinates{fixation_number,2});
                 %cord_x = floor(obj.fixations.average_gazex(fixation_number));
                 %cord_y = floor(obj.fixations.average_gazey(fixation_number));
-                density(cord_x,cord_y ) = density(cord_x, cord_y) + obj.fixations.duration(fixation_number);
+                density(cord_x,cord_y ) = density(cord_x, cord_y) + sample_rate;
             end
             figure;
             heat_axes = axes();
             hold on
             h = fspecial('gaussian', 5, 5);
-            HeatMap = imgaussfilt(density, 6, 'Padding', 'circular');
+            HeatMap = imgaussfilt(density, 6, 'Padding', 'circular')';
             X = imagesc(HeatMap);
             colormap(heat_axes, 'jet');
             hold off          
@@ -721,6 +730,15 @@ classdef trial < handle
                 'FontSize', 6);          
             c.Label.String = 'Fixation duration (ms)';
             c.Label.FontSize = 8;
+        end
+        function fixation_sequence_plot(obj)
+            colorval = linspace(0,1,obj.fixations.number);
+            for fixation_number = 1:obj.fixations.number-1
+                line([obj.fixations.average_gazex(fixation_number),obj.fixations.average_gazex(fixation_number+1)],...
+                    [obj.fixations.average_gazey(fixation_number),obj.fixations.average_gazey(fixation_number+1)], ...
+                    'color',[0+colorval(fixation_number) 0 1-colorval(fixation_number)])
+                hold on
+            end            
         end
         function saccade_plot(obj)
             for saccade_index = 1:obj.saccades.number

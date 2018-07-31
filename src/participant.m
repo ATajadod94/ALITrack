@@ -140,7 +140,6 @@ classdef participant < iTrack
                         fixation_duration{trialnum} = mytrial.fixations.duration;
                         fixation_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation';
                         
-                                                
                         output{row_num,4} = fixation_start{trialnum} ;
                         output{row_num,5} = fixation_end{trialnum};
                         output{row_num,6} = fixation_averagegaze_x{trialnum} ;                                         
