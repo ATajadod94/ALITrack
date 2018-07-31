@@ -53,7 +53,7 @@ classdef trial < handle
         condition %Associated condition for the given trial
     end
     properties (Access = private)
-        status = 0
+        status
     end
    
     methods
@@ -73,6 +73,7 @@ classdef trial < handle
             obj.trial_fieldname = ['trial_' int2str(trial_no)];
             obj.trial_no = trial_no;
             obj.parent = parent;
+            obj.status = 0;
             % data properties
             trial_data = obj.get_itrack;  
             % setting Temporal ROI's if specified
@@ -182,6 +183,7 @@ classdef trial < handle
             obj.status = obj.status + 10;
         end
         function fixation_extended(obj)
+            obj.fixation_base
             obj.deviation_of_duration_of_fixation
         end
         %base 
@@ -242,7 +244,7 @@ classdef trial < handle
         %extended
         function deviation_of_duration_of_fixation(obj)
             % sets the deviation of saccades  duration for the trial
-            if isfield(obj.fixations, 'duration')
+            if ~isfield(obj.fixations, 'duration')
                 duration_of_fixation(obj)
             end
             obj.fixations.duration_standard_deviation = std(double(obj.fixations.duration));
@@ -268,6 +270,7 @@ classdef trial < handle
             obj.status = obj.status + 10;
         end
         function saccade_extended(obj)
+            obj.saccade_base
             obj.deviation_of_duration_of_saccade
         end
         %base

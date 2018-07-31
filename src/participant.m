@@ -67,6 +67,9 @@ classdef participant < iTrack
             end
         end
         function set_base(obj, trials)
+            if ~exist('trials')
+                trials = 1:obj.NUM_TRIALS;
+            end
             for trial = trials
                 obj.TRIALS{trial}.set_base
             end
@@ -132,10 +135,10 @@ classdef participant < iTrack
                         %extended
                         fixation_start{trialnum} = mytrial.fixations.start;
                         fixation_end{trialnum} = mytrial.fixations.end;
-                        fixation_averagegaze_x{trialnum} = mytrial.fixations.average_gazex;
-                        fixation_averagegaze_y{trialnum} = mytrial.fixations.average_gazey;
+                        fixation_averagegaze_x{trialnum} = mytrial.fixations.average_gazex';
+                        fixation_averagegaze_y{trialnum} = mytrial.fixations.average_gazey';
                         fixation_duration{trialnum} = mytrial.fixations.duration;
-                        fixation_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation;;
+                        fixation_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation';
                         
                                                 
                         output{row_num,4} = fixation_start{trialnum} ;
@@ -147,15 +150,15 @@ classdef participant < iTrack
                         
                         saccades_start{trialnum} = mytrial.saccades.start;
                         saccades_end{trialnum} = mytrial.saccades.end;
-                        saccade_amplitude{trialnum} = mytrial.saccades.amplitude;
+                        saccade_amplitude{trialnum} = mytrial.saccades.amplitude';
                         saccades_amplitude_standarddeviation{trialnum} = mytrial.saccades.amplitude_variation;
                         saccades_duration{trialnum} = mytrial.saccades.duration;
-                        saccades_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation;                        
+                        saccades_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation';                        
                         
                         output{row_num,10} = saccades_start{trialnum} ;
                         output{row_num,11} = saccades_end{trialnum};
                         output{row_num,12} = saccade_amplitude{trialnum} ;
-                        output{row_num,13} = saccades_amplitude_standarddeviation{trialnum};
+                        output{row_num,13} = saccades_amplitude_standarddeviation{trialnum}';
                         output{row_num,14} = saccades_duration{trialnum};
                         output{row_num,15} = saccades_duration_standarddeviation(trialnum);
                         
