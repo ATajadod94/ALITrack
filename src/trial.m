@@ -183,8 +183,10 @@ classdef trial < handle
             obj.status = obj.status + 10;
         end
         function fixation_extended(obj)
-            obj.fixation_base
-            obj.deviation_of_duration_of_fixation
+            obj.fixation_base()
+            if obj.fixations.number > 0
+                obj.deviation_of_duration_of_fixation()           
+            end
         end
         %base 
         function number_of_fixation(obj)
@@ -210,7 +212,7 @@ classdef trial < handle
                 if length(obj.fixations.start) < length(obj.fixations.end)
                     obj.fixations.start = [0 ,  obj.fixations.start];
                 end     
-                fixation_cordinates = util.inbetween(obj.sample_time, obj.fixations.start, obj.fixations.end);
+                fixation_cordinates = util.inbetween(obj.trial_time, obj.fixations.start, obj.fixations.end);
                 for i = 1:length(intrial_index)
                     obj.fixations.cordinates{i,1} = obj.x(find(fixation_cordinates(i,:)));
                     obj.fixations.cordinates{i,2} = obj.y(find(fixation_cordinates(i,:)));
@@ -271,7 +273,9 @@ classdef trial < handle
         end
         function saccade_extended(obj)
             obj.saccade_base
-            obj.deviation_of_duration_of_saccade
+            if obj.saccades.number > 0
+                obj.deviation_of_duration_of_saccade
+            end
         end
         %base
         function number_of_saccade(obj)

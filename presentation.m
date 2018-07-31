@@ -21,4 +21,5 @@ clear
 load('myparticipant.mat');
 
 %% Plotting data
-
+mytrial = myparticipant(15);
+mytrial.fixation_heat_map()

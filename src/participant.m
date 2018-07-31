@@ -147,7 +147,6 @@ classdef participant < iTrack
                         output{row_num,7} = fixation_averagegaze_y{trialnum};
                         output{row_num,8} = fixation_duration{trialnum};
                         output{row_num,9} = fixation_duration_standarddeviation(trialnum);                        
-                        
                         saccades_start{trialnum} = mytrial.saccades.start;
                         saccades_end{trialnum} = mytrial.saccades.end;
                         saccade_amplitude{trialnum} = mytrial.saccades.amplitude';
