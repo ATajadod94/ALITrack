@@ -16,9 +16,8 @@ trial.set_eyelink_saccade(1) %% 1 indicates using the default thereshold
 
 %{
 p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/svrr101/svrr101.edf';
-myparticipant = participant(1,p_folder, 'samples', true);
-%myparticipant.set_trial_features('all','start_event','stimDisplay','end_event', 'stimDuration') % change to strings 
-% Elapsed time is 261.141535 seconds.
+myparticipant = participant(p_folder, 'samples', true);
+myparticipant.set_trials('start_event', string('stimDisplay'),'end_event', string('stimDuration')) % change to strings 
 %}
 
 % trial = gettrial(myparticipant,1,"start_event","Study_display", "end_event", "Blank_display");

@@ -282,16 +282,20 @@ classdef trial < handle
             trial_data = get_itrack(obj);
             intrial_index = find(ismember(double(trial_data.Saccades.entime),obj.sample_time));
             if ~isempty(intrial_index)
-                if trial_data.Saccades.entime(intrial_index(1))- obj.start_time  <  minimum_duration
+                if trial_data.Saccades.entime(intrial_index(1)) - obj.start_time  <  minimum_duration
                     intrial_index = intrial_index(2:end);
                 end         
             end
-            
             if ~isempty(intrial_index) % our indices might be reduced to non after the previous step
                 [~,col,~] =  find(obj.sample_time == trial_data.Saccades.sttime(intrial_index));
                 obj.saccades.start = obj.trial_time(col);
                 [~,col,~] =  find(obj.sample_time == trial_data.Saccades.entime(intrial_index));
                 obj.saccades.end = obj.trial_time(col);
+                
+                if (length(obj.saccades.start) < length(obj.saccades.end))
+                    obj.saccades.start = [obj.trial_time(1) , obj.saccades.start];
+                end
+
                 saccade_cordinates = util.inbetween(obj.sample_time, obj.saccades.start, obj.saccades.end);
                 
                 for i = 1:length(intrial_index)
@@ -305,6 +309,7 @@ classdef trial < handle
             
             obj.saccades.rawindex = intrial_index;
             obj.saccades.number = length(intrial_index);
+
 
         end       
         function duration_of_saccade(obj)
@@ -580,8 +585,6 @@ classdef trial < handle
            makeROIs(obj,size(mygrid),'shape','userDefined','userDefinedMask',  all_grids, 'names', {strcat('grid_', num2str(gridsize))})
         end      
         %% Extended methods
-        function set_angular_velocity(obj,thereshold)
-        end
         function set_eyelink_saccade(obj, thereshold)
             %% detects saccades based on existing  defenition 
             obj.saccades.eye_link = struct();

@@ -67,7 +67,7 @@ classdef participant < iTrack
             end
         end
         function set_base(obj, trials)
-            if ~exist('trials')
+            if ~exists('trials')
                 trials = 1:obj.NUM_TRIALS;
             end
             for trial = trials

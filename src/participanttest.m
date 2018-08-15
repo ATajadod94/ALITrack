@@ -31,7 +31,7 @@ classdef participanttest < matlab.unittest.TestCase
                         'testdata/Basic/2003.mat';
                         'testdata/Basic/sver308.mat';
                         'testdata/Basic/id02ma.mat';
-                        'testdata/Basic/sc04ra.mat'};
+                        'testdata/Basic/sc04ra.mat'} ;
             actuals = {'testdata/Basic/aj031ro_actual.mat';
                         'testdata/Basic/svrr101_actual.mat';
                         'testdata/Basic/sver101_actual.mat';
