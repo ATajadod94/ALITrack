@@ -241,10 +241,10 @@ classdef participant < iTrack
                 end
             else
                 if S(1).type == '()'
-                   reqtrial = obj.trial__(S(1).subs{1})
-                   [varargout{1:nargout}] = builtin('subsref',reqtrial, S(2));
-                end
-                if ismember(S(1).subs,[methods('participant');properties('participant')]) && ...
+                   reqtrial = obj.trial__(S(1).subs{1});
+                   builtin('subsref',reqtrial, S(2));
+                   [varargout{1:nargout}] = reqtrial;
+                elseif ismember(S(1).subs,[methods('participant');properties('participant')]) && ...
                     ~ismember(S(1).subs,[methods('iTrack');properties('iTrack')]);
                     [varargout{1:nargout}] = builtin('subsref',obj,S);
                 elseif ismember(S(1).subs, [methods('trial');properties('trial')])
