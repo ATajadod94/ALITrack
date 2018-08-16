@@ -7,3 +7,9 @@ example.m
 .DS_Store
 dep/.DS_Store
 testdata/.DS_Store
+testdata/Basic/sc04ra.mat
+testdata/Basic/sc04ra_actual.mat
+testdata/Basic/sc04ra_actual.mat
+testdata/Basic/sc04ra.mat
+testdata/Basic/sc04ra_actual.mat
+testdata/Basic/sc04ra.mat
