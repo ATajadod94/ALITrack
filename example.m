@@ -22,12 +22,16 @@ myparticipant.set_trials('start_event', string('stimDisplay'),'end_event', strin
 
 % trial = gettrial(myparticipant,1,"start_event","Study_display", "end_event", "Blank_display");
 
+% 
+% p_folder = '../../Data/ALItracker_Data/sver308/sver308.edf';
+% myparticipant = participant(p_folder, 'samples', true);
+% myparticipant.set_trials('start_event',string('stimDisplay'),'end_event', string('stimDuration'));
+% % TODO : fix the saccade and fixation cut off , universalize the funciton
+% % written to use for eyelink
 
-p_folder = '../../Data/ALItracker_Data/sver308/sver308.edf';
-myparticipant = participant(p_folder, 'samples', true);
-myparticipant.set_trials('start_event',string('stimDisplay'),'end_event', string('stimDuration'));
-% TODO : fix the saccade and fixation cut off , universalize the funciton
-% written to use for eyelink
+p_folder = '/Users/ryanlab/Desktop/AliT/Data/ALItracker_Data/sc04ra/sc04ra.edf';
+myparticipant =  participant(p_folder);
+myparticipant.set_trials()
 
 trial.number_of_fixation
 trial.duration_of_fixation
