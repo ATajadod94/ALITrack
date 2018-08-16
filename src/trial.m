@@ -136,7 +136,13 @@ classdef trial < handle
         end
         function [first, last, full_trial_time]  = get_timeindex(obj,firstinput,lastinput)
              trial_data = obj.get_itrack;
+         
              full_trial_time = 1000*(0:trial_data.numsamples-1) * 1/trial_data.sample_rate;
+             
+              if mod(trial_data.StartTime,2) %if the trial time data are odd sampels
+                 full_trial_time = full_trial_time+1;
+              end
+       
              % Todo:  handle durations
              switch class(firstinput)         
                 case 'char' %empty
