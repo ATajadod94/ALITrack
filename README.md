@@ -23,21 +23,19 @@ Available features :
 * Trial specific temporal ROI's ( Event based  or temporal based trial onset and offset)
 * ROI (temporal or spatial ) specific feature detection (EG: number of saccades in a specified period at a specified location)
 * Eyelink like saccade detection (EG: detecting saccades using the eyelinkmethod after cleaning the data)
-
-In development features: these features have either not been tested yet or have not been fully implemented. However, they are expected to be fully functional in the immediate future and can be used as-is for the sample data used in development.
-
 * Entropy 1,2 measures
 * Recurrence measures 
 
 Next steps: 
-* Testing the package on more and more EDF data to encounter potential errors
-* (?)
 
+In development features: these features have either not been tested yet or have not been fully implemented. However, they are expected to be fully functional in the immediate future and can be used as-is for the sample data used in development.
+
+Machine learning.
 
 ## Getting Started
 
 Download the repo and add it to your matlab path. 
-Check example.m for sample usage of the repo. 
+Check Demo folder for sample usage.
 
 ### Prerequisites
 
@@ -50,26 +48,11 @@ Give examples
 ### Installing
 
 
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
+Check Demo folder
 
 ## Running the tests
 
-Explain how to run the automated tests for this system
-
-
-
-```
-Give an example
-```
+Run the participanttests script in src usiing Matlab's (Runtestbutton)
 
 ## Deployment
 
