@@ -10,7 +10,19 @@ classdef participant < iTrack
         % constructors
         function obj = participant(use_edf, varargin)
             obj = obj@iTrack(use_edf,varargin{:});
-            if ~use_edf % if use_edf is 0
+            if use_edf == 'from_fixation'
+                p = inputParser;
+                p.addRequired('use_edf', @(x) strcmp(x,'from_fixation'))
+                p.addParameter('num_trials', @(x) isscalar(x) );
+                p.addParameter('data', @(x) iscell(x) );
+                p.parse(use_edf,varargin{:})
+               
+                obj.NUM_TRIALS = p.Results.num_trials;
+                obj.RAW = p.Results.data;
+                obj.EDF_File = 'from_fixation';
+                obj.data = {};
+                
+            elseif ~use_edf % if use_edf is 0
                 p = inputParser;
                 p.addRequired('use_edf', @(x) x==0)
                 p.addParameter('num_trials', @(x) isscalar(x) );
@@ -44,11 +56,27 @@ classdef participant < iTrack
                     obj.data{1}(i).numsamples = length(obj.data{1}(i).gx);
                     obj.data{1}(i).sample_rate = 1000*unique(diff(obj.data{1}(i).time));
                 end
+
             else
                 obj.NUM_TRIALS = length(obj.data{1});
             end
             obj.EDF_File = use_edf;  %participant aware of source
         end
+        function participant_list = participants_from_fixations(filename)
+            participant_key = 'RECORDING_SESSION_LABEL';
+            trial_key = 'trial';
+            fixation_table = read_fixationreports(filename);
+            participants = table2array(unique(fixation_table(:,participant_key)));
+            num_participants = length(participants);
+            for participant_number = 1:num_participants
+                p_idx = find(table2array(fixation_table(:,participant_key)) == participants(participant_number));
+                p_table = fixation_table(p_idx,:);
+                num_trials = height(unique(p_table(:,trial_key)));                
+                participant_list{participant_number} = participant('from_fixation', ...
+                            'data', table2cell(p_table), 'num_trials',num_trials );
+            end
+        end
+        %% setters
         function set_trials(obj,varargin)
             % Sets all features available for the given trials in the
             % participant object's trials. Check Trial documentaiton for more
@@ -58,12 +86,19 @@ classdef participant < iTrack
             p.addParameter('trial_number', 1:obj.NUM_TRIALS, @(x) isvector(x));
             addOptional(p, 'start_event',' ')
             addOptional(p, 'end_event',' ')
-            %% TODO: unify this function and requested_trial
             p.parse(obj, varargin{:});
-            start_event = p.Results.start_event;
-            end_event = p.Results.end_event;
-            for i = p.Results.trial_number
-                obj.TRIALS{i,1} = trial(obj, i ,'temporal_roi', [start_event;end_event]);
+
+            if strcmp(obj.EDF_File,'from_fixation')
+                for i = p.Results.trial_number
+                    obj.TRIALS{i,1} = trial(obj, i, 'from_fixation', 1);
+                end
+            else
+                %% TODO: unify this function and requested_trial
+                start_event = p.Results.start_event;
+                end_event = p.Results.end_event;
+                for i = p.Results.trial_number
+                    obj.TRIALS{i,1} = trial(obj, i ,'temporal_roi', [start_event;end_event]);
+                end
             end
         end
         function set_base(obj, trials)
@@ -275,3 +310,96 @@ classdef participant < iTrack
     end
 end
 
+
+function RSVFixationReportOutput = read_fixationreports(filename)
+ delimiter = '\t';
+ startRow = 2;
+ 
+ %% Read columns of data as text:
+ % For more information, see the TEXTSCAN documentation.
+ formatSpec = '%s%s%s%s%s%s%s%s%s%s%s%s%[^\n\r]';
+ 
+ %% Open the text file.
+ fileID = fopen(filename,'r');
+ 
+ %% Read columns of data according to the format.
+ % This call is based on the structure of the file used to generate this
+ % code. If an error occurs for a different file, try regenerating the code
+ % from the Import Tool.
+ dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
+ 
+ %% Close the text file.
+ fclose(fileID);
+ 
+ %% Convert the contents of columns containing numeric text to numbers.
+ % Replace non-numeric text with NaN.
+ raw = repmat({''},length(dataArray{1}),length(dataArray)-1);
+ for col=1:length(dataArray)-1
+     raw(1:length(dataArray{col}),col) = mat2cell(dataArray{col}, ones(length(dataArray{col}), 1));
+ end
+ numericData = NaN(size(dataArray{1},1),size(dataArray,2));
+ 
+ for col=[1,2,4,6,8,9,10,11,12]
+     % Converts text in the input cell array to numbers. Replaced non-numeric
+     % text with NaN.
+     rawData = dataArray{col};
+     for row=1:size(rawData, 1)
+         % Create a regular expression to detect and remove non-numeric prefixes and
+         % suffixes.
+         regexstr = '(?<prefix>.*?)(?<numbers>([-]*(\d+[\,]*)+[\.]{0,1}\d*[eEdD]{0,1}[-+]*\d*[i]{0,1})|([-]*(\d+[\,]*)*[\.]{1,1}\d+[eEdD]{0,1}[-+]*\d*[i]{0,1}))(?<suffix>.*)';
+         try
+             result = regexp(rawData(row), regexstr, 'names');
+             numbers = result.numbers;
+             
+             % Detected commas in non-thousand locations.
+             invalidThousandsSeparator = false;
+             if numbers.contains(',')
+                 thousandsRegExp = '^\d+?(\,\d{3})*\.{0,1}\d*$';
+                 if isempty(regexp(numbers, thousandsRegExp, 'once'))
+                     numbers = NaN;
+                     invalidThousandsSeparator = true;
+                 end
+             end
+             % Convert numeric text to numbers.
+             if ~invalidThousandsSeparator
+                 numbers = textscan(char(strrep(numbers, ',', '')), '%f');
+                 numericData(row, col) = numbers{1};
+                 raw{row, col} = numbers{1};
+             end
+         catch
+             raw{row, col} = rawData{row};
+         end
+     end
+ end
+ 
+ 
+ %% Split data into numeric and string columns.
+ rawNumericColumns = raw(:, [1,2,4,6,8,9,10,11,12]);
+ rawStringColumns = string(raw(:, [3,5,7]));
+ 
+ 
+ %% Replace non-numeric cells with NaN
+ R = cellfun(@(x) ~isnumeric(x) && ~islogical(x),rawNumericColumns); % Find non-numeric cells
+ rawNumericColumns(R) = {NaN}; % Replace non-numeric cells
+ 
+ %% Make sure any text containing <undefined> is properly converted to an <undefined> categorical
+ for catIdx = [1,2,3]
+     idx = (rawStringColumns(:, catIdx) == string('<undefined>'));
+     rawStringColumns(idx, catIdx) = string();
+ end
+ 
+ %% Create output variable
+ RSVFixationReportOutput = table;
+ RSVFixationReportOutput.RECORDING_SESSION_LABEL = cell2mat(rawNumericColumns(:, 1));
+ RSVFixationReportOutput.block = cell2mat(rawNumericColumns(:, 2));
+ RSVFixationReportOutput.category = categorical(rawStringColumns(:, 1));
+ RSVFixationReportOutput.cb = cell2mat(rawNumericColumns(:, 3));
+ RSVFixationReportOutput.condition = categorical(rawStringColumns(:, 2));
+ RSVFixationReportOutput.imagename = cell2mat(rawNumericColumns(:, 4));
+ RSVFixationReportOutput.set = categorical(rawStringColumns(:, 3));
+ RSVFixationReportOutput.trial = cell2mat(rawNumericColumns(:, 5));
+ RSVFixationReportOutput.TRIAL_LABEL = cell2mat(rawNumericColumns(:, 6));
+ RSVFixationReportOutput.CURRENT_FIX_DURATION = cell2mat(rawNumericColumns(:, 7));
+ RSVFixationReportOutput.CURRENT_FIX_X = cell2mat(rawNumericColumns(:, 8));
+ RSVFixationReportOutput.CURRENT_FIX_Y = cell2mat(rawNumericColumns(:, 9));
+ end

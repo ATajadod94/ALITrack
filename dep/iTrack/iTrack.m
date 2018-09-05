@@ -13,7 +13,7 @@ classdef iTrack  < handle
     
     methods        
         function obj=iTrack(varargin)
-            if varargin{1}
+            if varargin{1} ~= 'from_fixation' & varargin{1}
                 p = inputParser;
                 p.addParameter('edfs',{},@(x) iscell(x) || ischar(x));
                 p.addParameter('samples',1,@(x) islogical(x) || ismember(x,[0,1]))
@@ -2516,15 +2516,17 @@ classdef iTrack  < handle
                     error('field "%s" not found!',S(1).subs)
                 end
             else
-                'sorry byeforever'
+                'sorry not implemented'
             end
             
         end    
         function [objfields,behfields] = get_all_fields(obj)
-            
+
             objfields = cellfun(@fieldnames,obj.data,'Uniform',false);
             
-            if isfield(obj.data{1},'beh')
+            if isempty(obj.data)
+                behfields = {''};
+            elseif isfield(obj.data{1},'beh')
                 behfields =  cellfun(@(x) fieldnames(x(1).beh),obj.data,'Uniform',false);
             else
                 behfields = {''};

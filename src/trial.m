@@ -66,6 +66,7 @@ classdef trial < handle
             p.addRequired('parent', @(parent) isa(parent, 'participant'))
             p.addRequired('trial_no',  @(x) isvector(x));
             p.addOptional('temporal_roi', [' ';' '] , @checktemporal)
+            p.addOptional('from_fixation', 0)
             p.parse(parent, trial_no, varargin{:})            
             start_event = p.Results.temporal_roi(1);
             end_event = p.Results.temporal_roi(2);       
@@ -74,28 +75,36 @@ classdef trial < handle
             obj.trial_no = trial_no;
             obj.parent = parent;
             obj.status = 0;
-            % data properties
-            trial_data = obj.get_itrack;  
-            % setting Temporal ROI's if specified
-            [obj.start_time, obj.end_time ,full_trial_time] = ...
-                    obj.get_timeindex(start_event, end_event);            
-            obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
-            
-            if isfield(obj.parent.screen,'dims')
-                trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
-                trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
-                trial_data.gx(trial_data.gx < 0 ) = nan;
-                trial_data.gy(trial_data.gy < 0 ) = nan;
+            % fixation_case
+            if p.Results.from_fixation == 1
+                obj = obj.trial_fromfixation();                
+            else
+                % data properties
+                trial_data = obj.get_itrack;  
+                % setting Temporal ROI's if specified
+                [obj.start_time, obj.end_time ,full_trial_time] = ...
+                        obj.get_timeindex(start_event, end_event);            
+                obj.index = find(full_trial_time >= obj.start_time,1):find(full_trial_time >= obj.end_time,1);   
+
+                if isfield(obj.parent.screen,'dims')
+                    trial_data.gx(trial_data.gx > obj.parent.screen.dims(1)) = nan;
+                    trial_data.gy(trial_data.gy > obj.parent.screen.dims(2)) = nan;
+                    trial_data.gx(trial_data.gx < 0 ) = nan;
+                    trial_data.gy(trial_data.gy < 0 ) = nan;
+                end
+
+                obj.x = trial_data.gx(obj.index);
+                obj.y = trial_data.gy(obj.index);
+                obj.num_samples = length(obj.x);
+                obj.sample_time = full_trial_time(obj.index);
+                obj.trial_time = obj.sample_time - obj.sample_time(1);
             end
-            
-            obj.x = trial_data.gx(obj.index);
-            obj.y = trial_data.gy(obj.index);
-            obj.num_samples = length(obj.x);
-            obj.sample_time = full_trial_time(obj.index);
-            obj.trial_time = obj.sample_time - obj.sample_time(1);
             obj.rois.single = [];
             obj.rois.combined = [];
-        end                    
+        end 
+        function obj = trial_fromfixation(obj)
+            a = 2;
+        end
         %% Helper funcions
         function get_polar(obj)
             % sets the polar cordinates for the trial. Saved in the theta
