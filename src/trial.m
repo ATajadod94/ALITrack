@@ -103,7 +103,18 @@ classdef trial < handle
             obj.rois.combined = [];
         end 
         function obj = trial_fromfixation(obj)
-            a = 2;
+            trial_column = 9; %% generalize  later
+            fixation_x = 11; %% generalize  later
+            fixation_y = 12;  %% generalize  later
+            duration_column = 10; %% generalize  later
+            image_name_column = 3; %% generalize  later
+            trial_data = obj.parent.RAW(cell2mat(obj.parent.RAW(:,9)) == obj.trial_no,:);
+            obj.fixations.raw = trial_data;
+            obj.fixations.number = length(trial_data);
+            obj.fixations.average_gazex = trial_data(:,fixation_x);
+            obj.fixations.average_gazey = trial_data(:,fixation_y);
+            obj.fixations.durtion = trial_data(:,duration_column);
+            obj.fixations.image_name = trial_data(:,image_name_column);
         end
         %% Helper funcions
         function get_polar(obj)

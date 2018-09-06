@@ -62,20 +62,6 @@ classdef participant < iTrack
             end
             obj.EDF_File = use_edf;  %participant aware of source
         end
-        function participant_list = participants_from_fixations(filename)
-            participant_key = 'RECORDING_SESSION_LABEL';
-            trial_key = 'trial';
-            fixation_table = read_fixationreports(filename);
-            participants = table2array(unique(fixation_table(:,participant_key)));
-            num_participants = length(participants);
-            for participant_number = 1:num_participants
-                p_idx = find(table2array(fixation_table(:,participant_key)) == participants(participant_number));
-                p_table = fixation_table(p_idx,:);
-                num_trials = height(unique(p_table(:,trial_key)));                
-                participant_list{participant_number} = participant('from_fixation', ...
-                            'data', table2cell(p_table), 'num_trials',num_trials );
-            end
-        end
         %% setters
         function set_trials(obj,varargin)
             % Sets all features available for the given trials in the
@@ -307,6 +293,24 @@ classdef participant < iTrack
                 end
             end
         end
+    end
+    
+    methods (Static) 
+            function participant_list = participants_from_fixations(filename)
+            participant_key = 'RECORDING_SESSION_LABEL';
+            trial_key = 'trial';
+            fixation_table = read_fixationreports(filename);
+            participants = table2array(unique(fixation_table(:,participant_key)));
+            num_participants = length(participants);
+            for participant_number = 1:num_participants
+                p_idx = find(table2array(fixation_table(:,participant_key)) == participants(participant_number));
+                p_table = fixation_table(p_idx,:);
+                num_trials = height(unique(p_table(:,trial_key)));                
+                participant_list{participant_number} = participant('from_fixation', ...
+                            'data', table2cell(p_table), 'num_trials',num_trials );
+            end
+        end
+
     end
 end
 
