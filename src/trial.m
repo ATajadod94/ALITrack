@@ -278,6 +278,30 @@ classdef trial < handle
             obj.fixations.duration_standard_deviation = std(double(obj.fixations.duration));
             obj.fixations.duration_zscore = util.zscore(obj.fixations.duration);           
         end
+        function fixation_map(obj)
+            obj.fixations.images = unique([obj.fixations.image_name{:}]);
+            imageSize = [1080,1920];  %hard_coded
+            map = zeros(imageSize);
+            %disp(obj.trial_no);
+            if obj.trial_no == 61
+                a = 2
+            end
+            for fixation = 1:obj.fixations.number
+                x = floor(obj.fixations.average_gazex{fixation});
+                y = floor(obj.fixations.average_gazey{fixation});
+                d = obj.fixations.durtion{fixation};
+                
+                if x < 0
+                    x = 1;
+                end
+                if y < 0
+                    y = 1;
+                end
+               
+                map(y,x) = map(y,x) + d;
+            end
+            obj.fixations.map = map / sum(map(:));
+        end
         %functional
         function get_isfixation(obj)
             % sets the issaccade vector.  Also creates fixation_start,
@@ -694,6 +718,39 @@ classdef trial < handle
                 end
             end                      
                 obj.entropy = get_ent(number_of_regions, looked_regions)
+        end
+        function fixationmap(obj)
+            imageSize = [1920,1080]; %% HARDCODED FOR NOW
+            obj.mark_badfixations(imageSize)
+            obj.fixations.map =  zeros(imageSize); 
+            obj.mark_badfixations(imageSize)
+            for fix_num = 1:obj.fixations.number
+                if ismember(fix_num,obj.fixations.outofbounds)
+                   continue 
+                else
+                    x = obj.fixations.average_gazex{fix_num};
+                    y = obj.fixations.average_gazey{fix_num};
+                    d = obj.fixations.durtion{fix_num};   
+                    x = ceil(x); 
+                    y = ceil(y);
+                    obj.fixations.map(y,x) = obj.fixations.map(x,y) + d;   
+                end
+            end         
+            obj.fixations.map = obj.fixations.map / sum(obj.fixations.map(:));
+        end
+        %% Utility methods 
+        function mark_badfixations(obj,imageSize)
+             obj.fixations.outofbounds = [];
+             x_lim = imageSize(1);
+             y_lim = imageSize(2);
+             for fix_num = 1:obj.fixations.number
+                x = obj.fixations.average_gazex{fix_num}; %#ok<PROPLC>
+                y = obj.fixations.average_gazey{fix_num};%#ok<PROPLC>
+                
+                if (x < 0 || x > x_lim) ||(y < 0 || y > y_lim) %#ok<PROPLC>  %% the 0 has to be changed later
+                    obj.fixations.outofbounds = [obj.fixations.outofbounds, fix_num];
+                end
+             end   
         end
         %% Plotting methods
         function animate(obj)

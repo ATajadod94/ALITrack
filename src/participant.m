@@ -270,7 +270,7 @@ classdef participant < iTrack
                     [varargout{1:nargout}] = builtin('subsref',obj,S);
                 elseif ismember(S(1).subs, [methods('trial');properties('trial')])
                     for i = 1:obj.NUM_TRIALS
-                        subsref(obj.TRIALS{i},S)
+                       [varargout{1:nargout}] =  subsref(obj.TRIALS{i},S)
                     end
                 else
                     [varargout{1:nargout}]  = builtin('subsref',obj,S);
@@ -309,101 +309,115 @@ classdef participant < iTrack
                 participant_list{participant_number} = participant('from_fixation', ...
                             'data', table2cell(p_table), 'num_trials',num_trials );
             end
-        end
-
+            end
     end
 end
 
 
 function RSVFixationReportOutput = read_fixationreports(filename)
- delimiter = '\t';
- startRow = 2;
- 
- %% Read columns of data as text:
- % For more information, see the TEXTSCAN documentation.
- formatSpec = '%s%s%s%s%s%s%s%s%s%s%s%s%[^\n\r]';
- 
- %% Open the text file.
- fileID = fopen(filename,'r');
- 
- %% Read columns of data according to the format.
- % This call is based on the structure of the file used to generate this
- % code. If an error occurs for a different file, try regenerating the code
- % from the Import Tool.
- dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
- 
- %% Close the text file.
- fclose(fileID);
- 
- %% Convert the contents of columns containing numeric text to numbers.
- % Replace non-numeric text with NaN.
- raw = repmat({''},length(dataArray{1}),length(dataArray)-1);
- for col=1:length(dataArray)-1
-     raw(1:length(dataArray{col}),col) = mat2cell(dataArray{col}, ones(length(dataArray{col}), 1));
- end
- numericData = NaN(size(dataArray{1},1),size(dataArray,2));
- 
- for col=[1,2,4,6,8,9,10,11,12]
-     % Converts text in the input cell array to numbers. Replaced non-numeric
-     % text with NaN.
-     rawData = dataArray{col};
-     for row=1:size(rawData, 1)
-         % Create a regular expression to detect and remove non-numeric prefixes and
-         % suffixes.
-         regexstr = '(?<prefix>.*?)(?<numbers>([-]*(\d+[\,]*)+[\.]{0,1}\d*[eEdD]{0,1}[-+]*\d*[i]{0,1})|([-]*(\d+[\,]*)*[\.]{1,1}\d+[eEdD]{0,1}[-+]*\d*[i]{0,1}))(?<suffix>.*)';
-         try
-             result = regexp(rawData(row), regexstr, 'names');
-             numbers = result.numbers;
-             
-             % Detected commas in non-thousand locations.
-             invalidThousandsSeparator = false;
-             if numbers.contains(',')
-                 thousandsRegExp = '^\d+?(\,\d{3})*\.{0,1}\d*$';
-                 if isempty(regexp(numbers, thousandsRegExp, 'once'))
-                     numbers = NaN;
-                     invalidThousandsSeparator = true;
-                 end
-             end
-             % Convert numeric text to numbers.
-             if ~invalidThousandsSeparator
-                 numbers = textscan(char(strrep(numbers, ',', '')), '%f');
-                 numericData(row, col) = numbers{1};
-                 raw{row, col} = numbers{1};
-             end
-         catch
-             raw{row, col} = rawData{row};
-         end
-     end
- end
- 
- 
- %% Split data into numeric and string columns.
- rawNumericColumns = raw(:, [1,2,4,6,8,9,10,11,12]);
- rawStringColumns = string(raw(:, [3,5,7]));
- 
- 
- %% Replace non-numeric cells with NaN
- R = cellfun(@(x) ~isnumeric(x) && ~islogical(x),rawNumericColumns); % Find non-numeric cells
- rawNumericColumns(R) = {NaN}; % Replace non-numeric cells
- 
- %% Make sure any text containing <undefined> is properly converted to an <undefined> categorical
- for catIdx = [1,2,3]
-     idx = (rawStringColumns(:, catIdx) == string('<undefined>'));
-     rawStringColumns(idx, catIdx) = string();
- end
- 
- %% Create output variable
- RSVFixationReportOutput = table;
- RSVFixationReportOutput.RECORDING_SESSION_LABEL = cell2mat(rawNumericColumns(:, 1));
- RSVFixationReportOutput.block = cell2mat(rawNumericColumns(:, 2));
- RSVFixationReportOutput.category = categorical(rawStringColumns(:, 1));
- RSVFixationReportOutput.cb = cell2mat(rawNumericColumns(:, 3));
- RSVFixationReportOutput.condition = categorical(rawStringColumns(:, 2));
- RSVFixationReportOutput.imagename = cell2mat(rawNumericColumns(:, 4));
- RSVFixationReportOutput.set = categorical(rawStringColumns(:, 3));
- RSVFixationReportOutput.trial = cell2mat(rawNumericColumns(:, 5));
- RSVFixationReportOutput.TRIAL_LABEL = cell2mat(rawNumericColumns(:, 6));
- RSVFixationReportOutput.CURRENT_FIX_DURATION = cell2mat(rawNumericColumns(:, 7));
- RSVFixationReportOutput.CURRENT_FIX_X = cell2mat(rawNumericColumns(:, 8));
- RSVFixationReportOutput.CURRENT_FIX_Y = cell2mat(rawNumericColumns(:, 9));
+%% Import data from text file.
+% Script for importing data from the following text file:
+%
+%    /Users/ryanlab/Desktop/AliT/Scripts/saliency_analysis/data/RSVFixationReportOutput.csv
+%
+% To extend the code to different selected data or a different text file,
+% generate a function instead of a script.
+
+% Auto-generated by MATLAB on 2018/08/24 13:31:20
+
+%% Initialize variables.
+filename = 'C:\Users\alire\Documents\GitHub\saliency_analysis\data\RSVFixationReportOutput.csv';
+delimiter = '\t';
+startRow = 2;
+
+%% Read columns of data as text:
+% For more information, see the TEXTSCAN documentation.
+formatSpec = '%s%s%s%s%s%s%s%s%s%s%s%s%[^\n\r]';
+
+%% Open the text file.
+fileID = fopen(filename,'r');
+
+%% Read columns of data according to the format.
+% This call is based on the structure of the file used to generate this
+% code. If an error occurs for a different file, try regenerating the code
+% from the Import Tool.
+dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string', 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
+
+%% Close the text file.
+fclose(fileID);
+
+%% Convert the contents of columns containing numeric text to numbers.
+% Replace non-numeric text with NaN.
+raw = repmat({''},length(dataArray{1}),length(dataArray)-1);
+for col=1:length(dataArray)-1
+    raw(1:length(dataArray{col}),col) = mat2cell(dataArray{col}, ones(length(dataArray{col}), 1));
+end
+numericData = NaN(size(dataArray{1},1),size(dataArray,2));
+
+for col=[1,2,4,6,8,9,10,11,12]
+    % Converts text in the input cell array to numbers. Replaced non-numeric
+    % text with NaN.
+    rawData = dataArray{col};
+    for row=1:size(rawData, 1)
+        % Create a regular expression to detect and remove non-numeric prefixes and
+        % suffixes.
+        regexstr = '(?<prefix>.*?)(?<numbers>([-]*(\d+[\,]*)+[\.]{0,1}\d*[eEdD]{0,1}[-+]*\d*[i]{0,1})|([-]*(\d+[\,]*)*[\.]{1,1}\d+[eEdD]{0,1}[-+]*\d*[i]{0,1}))(?<suffix>.*)';
+        try
+            result = regexp(rawData(row), regexstr, 'names');
+            numbers = result.numbers;
+            
+            % Detected commas in non-thousand locations.
+            invalidThousandsSeparator = false;
+            if numbers.contains(',')
+                thousandsRegExp = '^\d+?(\,\d{3})*\.{0,1}\d*$';
+                if isempty(regexp(numbers, thousandsRegExp, 'once'))
+                    numbers = NaN;
+                    invalidThousandsSeparator = true;
+                end
+            end
+            % Convert numeric text to numbers.
+            if ~invalidThousandsSeparator
+                numbers = textscan(char(strrep(numbers, ',', '')), '%f');
+                numericData(row, col) = numbers{1};
+                raw{row, col} = numbers{1};
+            end
+        catch
+            raw{row, col} = rawData{row};
+        end
+    end
+end
+
+
+%% Split data into numeric and string columns.
+rawNumericColumns = raw(:, [1,2,4,6,8,9,10,11,12]);
+rawStringColumns = string(raw(:, [3,5,7]));
+
+
+%% Replace non-numeric cells with NaN
+R = cellfun(@(x) ~isnumeric(x) && ~islogical(x),rawNumericColumns); % Find non-numeric cells
+rawNumericColumns(R) = {NaN}; % Replace non-numeric cells
+
+%% Make sure any text containing <undefined> is properly converted to an <undefined> categorical
+for catIdx = [1,2,3]
+    idx = (rawStringColumns(:, catIdx) == "<undefined>");
+    rawStringColumns(idx, catIdx) = "";
+end
+
+%% Create output variable
+RSVFixationReportOutput = table;
+RSVFixationReportOutput.RECORDING_SESSION_LABEL = cell2mat(rawNumericColumns(:, 1));
+RSVFixationReportOutput.block = cell2mat(rawNumericColumns(:, 2));
+RSVFixationReportOutput.category = categorical(rawStringColumns(:, 1));
+RSVFixationReportOutput.cb = cell2mat(rawNumericColumns(:, 3));
+RSVFixationReportOutput.condition = categorical(rawStringColumns(:, 2));
+RSVFixationReportOutput.imagename = cell2mat(rawNumericColumns(:, 4));
+RSVFixationReportOutput.set = categorical(rawStringColumns(:, 3));
+RSVFixationReportOutput.trial = cell2mat(rawNumericColumns(:, 5));
+RSVFixationReportOutput.TRIAL_LABEL = cell2mat(rawNumericColumns(:, 6));
+RSVFixationReportOutput.CURRENT_FIX_DURATION = cell2mat(rawNumericColumns(:, 7));
+RSVFixationReportOutput.CURRENT_FIX_X = cell2mat(rawNumericColumns(:, 8));
+RSVFixationReportOutput.CURRENT_FIX_Y = cell2mat(rawNumericColumns(:, 9));
+
+%% Clear temporary variables
+clearvars filename delimiter startRow formatSpec fileID dataArray ans raw col numericData rawData row regexstr result numbers invalidThousandsSeparator thousandsRegExp rawNumericColumns rawStringColumns R catIdx idx;
  end
