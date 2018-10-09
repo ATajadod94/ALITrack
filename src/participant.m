@@ -270,7 +270,7 @@ classdef participant < iTrack
                     [varargout{1:nargout}] = builtin('subsref',obj,S);
                 elseif ismember(S(1).subs, [methods('trial');properties('trial')])
                     for i = 1:obj.NUM_TRIALS
-                        subsref(obj.TRIALS{i},S)
+                       [varargout{1:nargout}] =  subsref(obj.TRIALS{i},S)
                     end
                 else
                     [varargout{1:nargout}]  = builtin('subsref',obj,S);
