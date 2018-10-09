@@ -399,8 +399,8 @@ rawNumericColumns(R) = {NaN}; % Replace non-numeric cells
 
 %% Make sure any text containing <undefined> is properly converted to an <undefined> categorical
 for catIdx = [1,2,3]
-    idx = (rawStringColumns(:, catIdx) == "<undefined>");
-    rawStringColumns(idx, catIdx) = "";
+    idx = (rawStringColumns(:, catIdx) == string('<undefined>'));
+    rawStringColumns(idx, catIdx) = string('');
 end
 
 %% Create output variable

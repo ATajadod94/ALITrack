@@ -278,30 +278,6 @@ classdef trial < handle
             obj.fixations.duration_standard_deviation = std(double(obj.fixations.duration));
             obj.fixations.duration_zscore = util.zscore(obj.fixations.duration);           
         end
-        function fixation_map(obj)
-            obj.fixations.images = unique([obj.fixations.image_name{:}]);
-            imageSize = [1080,1920];  %hard_coded
-            map = zeros(imageSize);
-            %disp(obj.trial_no);
-            if obj.trial_no == 61
-                a = 2
-            end
-            for fixation = 1:obj.fixations.number
-                x = floor(obj.fixations.average_gazex{fixation});
-                y = floor(obj.fixations.average_gazey{fixation});
-                d = obj.fixations.durtion{fixation};
-                
-                if x < 0
-                    x = 1;
-                end
-                if y < 0
-                    y = 1;
-                end
-               
-                map(y,x) = map(y,x) + d;
-            end
-            obj.fixations.map = map / sum(map(:));
-        end
         %functional
         function get_isfixation(obj)
             % sets the issaccade vector.  Also creates fixation_start,
