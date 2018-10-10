@@ -707,9 +707,19 @@ classdef trial < handle
                     x = obj.fixations.average_gazex{fix_num};
                     y = obj.fixations.average_gazey{fix_num};
                     d = obj.fixations.durtion{fix_num};   
-                    x = ceil(x); 
-                    y = ceil(y);
-                    obj.fixations.map(y,x) = obj.fixations.map(x,y) + d;   
+                    x = floor(x); 
+                    y = floor(y);
+                    if y == 0
+                        y = 1;
+                    end
+                    if x == 0
+                        x = 1;
+                    end
+                    try
+                        obj.fixations.map(y,x) = obj.fixations.map(x,y) + d;   
+                    catch
+                        a = 2;
+                    end
                 end
             end         
             obj.fixations.map = obj.fixations.map / sum(obj.fixations.map(:));
