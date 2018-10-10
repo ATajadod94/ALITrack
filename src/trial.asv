@@ -110,7 +110,7 @@ classdef trial < handle
             image_name_column = 3; %% generalize  later
             trial_data = obj.parent.RAW(cell2mat(obj.parent.RAW(:,9)) == obj.trial_no,:);
             obj.fixations.raw = trial_data;
-            obj.fixations.number = size(trial_data,1);
+            obj.fixations.number = length(trial_data);
             obj.fixations.average_gazex = trial_data(:,fixation_x);
             obj.fixations.average_gazey = trial_data(:,fixation_y);
             obj.fixations.durtion = trial_data(:,duration_column);
