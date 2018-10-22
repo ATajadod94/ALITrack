@@ -5,6 +5,7 @@ classdef participant < iTrack
         NUM_TRIALS % number of trials for a given participant
         EDF_File
         RAW % Raw data
+        AGE_GROUP  = '' % YOUNG OR OLD
     end
     methods
         % constructors
@@ -20,7 +21,11 @@ classdef participant < iTrack
                 obj.NUM_TRIALS = p.Results.num_trials;
                 obj.RAW = p.Results.data;
                 obj.EDF_File = 'from_fixation';
-                obj.data = {};
+                obj.data = obj.RAW;
+                
+                if obj.data{1,1} < 100
+                   obj.AGE_GROUP = 'y'; 
+                end
                 
             elseif ~use_edf % if use_edf is 0
                 p = inputParser;
