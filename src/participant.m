@@ -21,9 +21,9 @@ classdef participant < iTrack
                 obj.NUM_TRIALS = p.Results.num_trials;
                 obj.RAW = p.Results.data;
                 obj.EDF_File = 'from_fixation';
-                obj.data = obj.RAW;
+                obj.data = {};
                 
-                if obj.data{1,1} < 100
+                if obj.RAW{1,1} < 100
                    obj.AGE_GROUP = 'y'; 
                 end
                 
@@ -250,6 +250,7 @@ classdef participant < iTrack
         end
         % default overwrite 
         function varargout = subsref(obj,S)
+            obj.data = {};
             [objfields,behfields] = get_all_fields(obj);
             if length(S) == 1
                 if S.type == '()'
@@ -271,7 +272,7 @@ classdef participant < iTrack
                    builtin('subsref',reqtrial, S(2));
                    [varargout{1:nargout}] = reqtrial;
                 elseif ismember(S(1).subs,[methods('participant');properties('participant')]) && ...
-                    ~ismember(S(1).subs,[methods('iTrack');properties('iTrack')]);
+                    ~ismember(S(1).subs,[methods('iTrack');properties('iTrack')])
                     [varargout{1:nargout}] = builtin('subsref',obj,S);
                 elseif ismember(S(1).subs, [methods('trial');properties('trial')])
                     for i = 1:obj.NUM_TRIALS
