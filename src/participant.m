@@ -188,6 +188,47 @@ classdef participant < iTrack
                         
                         row_num = row_num + 1;
                     end
+                case string('fixations')
+                                        for trialnum = trials
+                        mytrial = obj.TRIALS{trialnum};
+                        % base
+                        index(trialnum) = trialnum;
+                        fixation_count(trialnum) =  mytrial.fixations.number;
+                        saccade_count(trialnum) = mytrial.saccades.number;
+                        output{row_num,1} = index(trialnum);
+                        output{row_num,2} = fixation_count(trialnum);
+                        output{row_num,3} = saccade_count(trialnum);
+                        %extended
+                        fixation_start{trialnum} = mytrial.fixations.start;
+                        fixation_end{trialnum} = mytrial.fixations.end;
+                        fixation_averagegaze_x{trialnum} = mytrial.fixations.average_gazex';
+                        fixation_averagegaze_y{trialnum} = mytrial.fixations.average_gazey';
+                        fixation_duration{trialnum} = mytrial.fixations.duration;
+                        fixation_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation';
+                        
+                        output{row_num,4} = fixation_start{trialnum} ;
+                        output{row_num,5} = fixation_end{trialnum};
+                        output{row_num,6} = fixation_averagegaze_x{trialnum} ;                                         
+                        output{row_num,7} = fixation_averagegaze_y{trialnum};
+                        output{row_num,8} = fixation_duration{trialnum};
+                        output{row_num,9} = fixation_duration_standarddeviation(trialnum);                        
+                        saccades_start{trialnum} = mytrial.saccades.start;
+                        saccades_end{trialnum} = mytrial.saccades.end;
+                        saccade_amplitude{trialnum} = mytrial.saccades.amplitude';
+                        saccades_amplitude_standarddeviation{trialnum} = mytrial.saccades.amplitude_variation;
+                        saccades_duration{trialnum} = mytrial.saccades.duration;
+                        saccades_duration_standarddeviation(trialnum) = mytrial.fixations.duration_standard_deviation';                        
+                        
+                        output{row_num,10} = saccades_start{trialnum} ;
+                        output{row_num,11} = saccades_end{trialnum};
+                        output{row_num,12} = saccade_amplitude{trialnum} ;
+                        output{row_num,13} = saccades_amplitude_standarddeviation{trialnum}';
+                        output{row_num,14} = saccades_duration{trialnum};
+                        output{row_num,15} = saccades_duration_standarddeviation(trialnum);
+                        
+                        row_num = row_num + 1;
+                    end
+
                 case string('full')
                     output = obj.to_matrix('trials', trials,'output', 'extended');
                     
@@ -212,6 +253,12 @@ classdef participant < iTrack
                         'FIXATION_X_AVG'; 'FIXATION_Y_AVG';'FIXATION_DURATION'; 'FIXATION_DURATION_DEVIATION'; ... 
                         'SACCADE_STARTTIME'; 'SACCADE_ENDTIME'; 'SACCADEAMPLITUDE'; 'SACCADEAMPLITUDE_DEVIATION'; ...
                         'SACCADE_DURATION'; 'SACCADE_DURATION_DEVIATION'}';
+                    [output{1,:}] = headers{:};
+                    util.cell2csv(filename, output, ',')
+                case 'fixations'
+                    headers = {'TRIAL_NUMBER'; 'FIXATION_COUNT';'FIXATION_STARTTIME';'FIXATION_ENDTIME';'FIXATION_X_AVG';...
+                        'FIXATION_Y_AVG';'FIXATION_DURATION'; 'FIXATION_DURATION_DEVIATION'};
+                                        [output{1,:}] = headers{:};
                     [output{1,:}] = headers{:};
                     util.cell2csv(filename, output, ',')
             end
@@ -427,3 +474,4 @@ RSVFixationReportOutput.CURRENT_FIX_Y = cell2mat(rawNumericColumns(:, 9));
 %% Clear temporary variables
 clearvars filename delimiter startRow formatSpec fileID dataArray ans raw col numericData rawData row regexstr result numbers invalidThousandsSeparator thousandsRegExp rawNumericColumns rawStringColumns R catIdx idx;
  end
+ 

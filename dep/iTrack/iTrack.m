@@ -13,7 +13,7 @@ classdef iTrack  < handle
     
     methods        
         function obj=iTrack(varargin)
-            if varargin{1} ~= 'from_fixation' & varargin{1}
+            if ~strcmp(varargin{1},'from_fixation') & varargin{1}
                 p = inputParser;
                 p.addParameter('edfs',{},@(x) iscell(x) || ischar(x));
                 p.addParameter('samples',1,@(x) islogical(x) || ismember(x,[0,1]))
@@ -1885,12 +1885,9 @@ classdef iTrack  < handle
             
             %this gives a cell for each subject, with a cell array for each
             %trial
+            
             temp = subsref(obj,S);
-            
-            
-            
-            
-            
+         
             fnames = reshape(fieldnames(temp{1}{1}),1,[]);
             
             
